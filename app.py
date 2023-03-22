@@ -6,5 +6,5 @@ HTML = "<!-- Include stylesheet -->\n<link href=\"https://cdn.quilljs.com/1.3.6/
 def greet(name):
     return HTML, ''
 
-iface = gr.Interface(fn=greet, gr.Textbox(placeholder="Enter sentence here..."), ["html", "json"])
+iface = gr.Interface(greet, gr.Textbox(placeholder="Enter sentence here..."), ["html", "json"])
 iface.launch()
