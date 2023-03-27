@@ -7,8 +7,6 @@ import torch
 import torchvision
 
 from pathlib import Path
-import skimage
-from skimage.morphology import erosion, square
 
 
 def split_attention_maps_over_steps(attention_maps):
