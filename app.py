@@ -28,7 +28,7 @@ def main():
     model = RegionDiffusion(device)
 
     def generate(
-        text_input: str,
+        json.loads(text_input): str,
         negative_text: str,
         height: int,
         width: int,
@@ -44,7 +44,7 @@ def main():
         # parse json to span attributes
         base_text_prompt, style_text_prompts, footnote_text_prompts, footnote_target_tokens,\
             color_text_prompts, color_names, color_rgbs, size_text_prompts_and_sizes, use_grad_guidance = parse_json(
-                text_input)
+                json.loads(text_input))
 
         # create control input for region diffusion
         region_text_prompts, region_target_token_ids, base_tokens = get_region_diffusion_input(

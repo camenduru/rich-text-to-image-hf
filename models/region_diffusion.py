@@ -22,17 +22,12 @@ class RegionDiffusion(nn.Module):
         print(f'[INFO] loading stable diffusion...')
         model_id = 'runwayml/stable-diffusion-v1-5'
 
-        # 1. Load the autoencoder model which will be used to decode the latents into image space.
         self.vae = AutoencoderKL.from_pretrained(
             model_id, subfolder="vae").to(self.device)
-
-        # 2. Load the tokenizer and text encoder to tokenize and encode the text.
         self.tokenizer = CLIPTokenizer.from_pretrained(
             model_id, subfolder='tokenizer')
         self.text_encoder = CLIPTextModel.from_pretrained(
             model_id, subfolder='text_encoder').to(self.device)
-
-        # 3. The UNet model for generating the latents.
         self.unet = UNet2DConditionModel.from_pretrained(
             model_id, subfolder="unet").to(self.device)
 
