@@ -36,15 +36,6 @@ class RegionDiffusion(nn.Module):
         self.unet = UNet2DConditionModel.from_pretrained(
             model_id, subfolder="unet").to(self.device)
 
-        if save_pretrained:
-            self.vae.save_pretrained(os.path.join(local_pretrained_dir, 'vae'))
-            self.tokenizer.save_pretrained(
-                os.path.join(local_pretrained_dir, 'tokenizer'))
-            self.text_encoder.save_pretrained(
-                os.path.join(local_pretrained_dir, 'text_encoder'))
-            self.unet.save_pretrained(
-                os.path.join(local_pretrained_dir, 'unet'))
-
         self.scheduler = PNDMScheduler(beta_start=0.00085, beta_end=0.012, beta_schedule="scaled_linear",
                                        num_train_timesteps=self.num_train_timesteps, skip_prk_steps=True, steps_offset=1)
         self.alphas_cumprod = self.scheduler.alphas_cumprod.to(self.device)
