@@ -28,7 +28,7 @@ class RegionDiffusion(nn.Module):
         self.clip_gradient = False
 
         print(f'[INFO] loading stable diffusion...')
-        local_pretrained_dir = f'pretrained-guidance/v1'
+        local_pretrained_dir = "runwayml/stable-diffusion-v1-5"
         if not os.path.isdir(local_pretrained_dir):
             save_pretrained = True
             load_paths = 'runwayml/stable-diffusion-v1-5'
