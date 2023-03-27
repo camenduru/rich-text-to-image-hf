@@ -23,25 +23,6 @@ Instructions placeholder.
 """
 
 
-example_instructions = [
-    "Make it a picasso painting",
-    "as if it were by modigliani",
-    "convert to a bronze statue",
-    "Turn it into an anime.",
-    "have it look like a graphic novel",
-    "make him gain weight",
-    "what would he look like bald?",
-    "Have him smile",
-    "Put him in a cocktail party.",
-    "move him at the beach.",
-    "add dramatic lighting",
-    "Convert to black and white",
-    "What if it were snowing?",
-    "Give him a leather jacket",
-    "Turn him into a cyborg!",
-    "make him wear a beanie",
-]
-
 def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = RegionDiffusion(device)
@@ -90,9 +71,9 @@ def main():
                                             height=height, width=width, num_inference_steps=steps,
                                             guidance_scale=guidance_weight)
         print('time lapses to get attention maps: %.4f' % (time.time()-begin_time))
-        color_obj_masks = get_token_maps(
+        color_obj_masks, _ = get_token_maps(
             model.attention_maps, run_dir, width//8, height//8, color_target_token_ids, seed)
-        model.masks = get_token_maps(
+        model.masks, token_maps = get_token_maps(
             model.attention_maps, run_dir, width//8, height//8, region_target_token_ids, seed, base_tokens)
         color_obj_masks = [transforms.functional.resize(color_obj_mask, (height, width),
                                                         interpolation=transforms.InterpolationMode.BICUBIC,
@@ -110,7 +91,8 @@ def main():
                                     text_format_dict=text_format_dict)
         print('time lapses to generate image from rich text: %.4f' %
             (time.time()-begin_time))
-        return [plain_img[0], rich_img[0]]
+        cat_img = np.concatenate([plain_img[0], rich_img[0]], 1)
+        return [cat_img, token_maps]
 
     with gr.Blocks() as demo:
         gr.HTML("""<h1 style="font-weight: 900; margin-bottom: 7px;">Expressive Text-to-Image Generation with Rich Text</h1>

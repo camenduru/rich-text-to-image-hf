@@ -76,15 +76,19 @@ def plot_attention_maps(atten_map_list, obj_tokens, save_dir, seed, tokens_vis=N
         norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         fig.colorbar(sm, cax=axs[-1])
+        canvas = fig.canvas
+        canvas.draw()
+        width, height = canvas.get_width_height()
+        img = np.frombuffer(canvas.tostring_rgb(), dtype='uint8').reshape((height, width, 3))
 
         fig.tight_layout()
         plt.savefig(os.path.join(
             save_dir, 'token_mapes_seed%d_%s.png' % (seed, atten_names[i])), dpi=100)
         plt.close('all')
+    return img
 
 
-def get_token_maps(attention_maps, save_dir, width, height, obj_tokens, seed=0, tokens_vis=None,
-                   preprocess=False):
+def get_token_maps(attention_maps, save_dir, width, height, obj_tokens, seed=0, tokens_vis=None):
     r"""Function to visualize attention maps.
     Args:
         save_dir (str): Path to save attention maps
@@ -177,23 +181,8 @@ def get_token_maps(attention_maps, save_dir, width, height, obj_tokens, seed=0, 
     attention_maps_averaged_normalized = [
         attention_maps_averaged_normalized[i:i+1] for i in range(attention_maps_averaged_normalized.shape[0])]
 
-    if preprocess:
-        # it is possible to preprocess the attention maps here
-        selem = square(5)
-        attention_maps_averaged_eroded = [erosion(skimage.img_as_float(
-            map[0].numpy()*255), selem) for map in attention_maps_averaged_normalized[:2]]
-        attention_maps_averaged_eroded = [(torch.from_numpy(map).unsqueeze(
-            0)/255. > 0.8).float() for map in attention_maps_averaged_eroded]
-        attention_maps_averaged_eroded.append(
-            1 - torch.cat(attention_maps_averaged_eroded).sum(0, True))
-        plot_attention_maps([attention_maps_averaged, attention_maps_averaged_normalized,
-                            attention_maps_averaged_eroded], obj_tokens, save_dir, seed, tokens_vis)
-        attention_maps_averaged_eroded = [attn_mask.unsqueeze(1).repeat(
-            [1, 4, 1, 1]).cuda() for attn_mask in attention_maps_averaged_eroded]
-        return attention_maps_averaged_eroded
-    else:
-        plot_attention_maps([attention_maps_averaged, attention_maps_averaged_normalized],
-                            obj_tokens, save_dir, seed, tokens_vis)
-        attention_maps_averaged_normalized = [attn_mask.unsqueeze(1).repeat(
-            [1, 4, 1, 1]).cuda() for attn_mask in attention_maps_averaged_normalized]
-        return attention_maps_averaged_normalized
+    token_maps_vis = plot_attention_maps([attention_maps_averaged, attention_maps_averaged_normalized],
+                        obj_tokens, save_dir, seed, tokens_vis)
+    attention_maps_averaged_normalized = [attn_mask.unsqueeze(1).repeat(
+        [1, 4, 1, 1]).cuda() for attn_mask in attention_maps_averaged_normalized]
+    return attention_maps_averaged_normalized, token_maps_vis
