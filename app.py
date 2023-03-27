@@ -44,7 +44,7 @@ def main():
         # parse json to span attributes
         base_text_prompt, style_text_prompts, footnote_text_prompts, footnote_target_tokens,\
             color_text_prompts, color_names, color_rgbs, size_text_prompts_and_sizes, use_grad_guidance = parse_json(
-                json.loads(text_input))
+                json.loads(text_input), device)
 
         # create control input for region diffusion
         region_text_prompts, region_target_token_ids, base_tokens = get_region_diffusion_input(

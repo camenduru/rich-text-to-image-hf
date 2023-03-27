@@ -184,5 +184,5 @@ def get_token_maps(attention_maps, save_dir, width, height, obj_tokens, seed=0, 
     token_maps_vis = plot_attention_maps([attention_maps_averaged, attention_maps_averaged_normalized],
                         obj_tokens, save_dir, seed, tokens_vis)
     attention_maps_averaged_normalized = [attn_mask.unsqueeze(1).repeat(
-        [1, 4, 1, 1]).cuda() for attn_mask in attention_maps_averaged_normalized]
+        [1, 4, 1, 1]).to(attention_maps_averaged_sum.device) for attn_mask in attention_maps_averaged_normalized]
     return attention_maps_averaged_normalized, token_maps_vis
