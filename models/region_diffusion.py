@@ -15,41 +15,26 @@ class RegionDiffusion(nn.Module):
     def __init__(self, device):
         super().__init__()
 
-        try:
-            with open('./TOKEN', 'r') as f:
-                self.token = f.read().replace('\n', '')  # remove the last \n!
-                print(f'[INFO] loaded hugging face access token from ./TOKEN!')
-        except FileNotFoundError as e:
-            self.token = True
-            print(f'[INFO] try to load hugging face access token from the default place, make sure you have run `huggingface-cli login`.')
-
         self.device = device
         self.num_train_timesteps = 1000
         self.clip_gradient = False
 
         print(f'[INFO] loading stable diffusion...')
-        local_pretrained_dir = "runwayml/stable-diffusion-v1-5"
-        if not os.path.isdir(local_pretrained_dir):
-            save_pretrained = True
-            load_paths = 'runwayml/stable-diffusion-v1-5'
-            os.makedirs(local_pretrained_dir, exist_ok=True)
-        else:
-            save_pretrained = False
-            load_paths = local_pretrained_dir
+        model_id = 'runwayml/stable-diffusion-v1-5'
 
         # 1. Load the autoencoder model which will be used to decode the latents into image space.
         self.vae = AutoencoderKL.from_pretrained(
-            load_paths, subfolder="vae", use_auth_token=self.token).to(self.device)
+            model_id, subfolder="vae").to(self.device)
 
         # 2. Load the tokenizer and text encoder to tokenize and encode the text.
         self.tokenizer = CLIPTokenizer.from_pretrained(
-            load_paths, subfolder='tokenizer', use_auth_token=self.token)
+            model_id, subfolder='tokenizer')
         self.text_encoder = CLIPTextModel.from_pretrained(
-            load_paths, subfolder='text_encoder', use_auth_token=self.token).to(self.device)
+            model_id, subfolder='text_encoder').to(self.device)
 
         # 3. The UNet model for generating the latents.
         self.unet = UNet2DConditionModel.from_pretrained(
-            load_paths, subfolder="unet", use_auth_token=self.token).to(self.device)
+            model_id, subfolder="unet").to(self.device)
 
         if save_pretrained:
             self.vae.save_pretrained(os.path.join(local_pretrained_dir, 'vae'))
