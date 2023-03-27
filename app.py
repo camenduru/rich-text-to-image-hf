@@ -28,7 +28,7 @@ def main():
     model = RegionDiffusion(device)
 
     def generate(
-        json.loads(text_input): str,
+        text_input: str,
         negative_text: str,
         height: int,
         width: int,
