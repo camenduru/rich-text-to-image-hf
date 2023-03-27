@@ -82,9 +82,6 @@ def plot_attention_maps(atten_map_list, obj_tokens, save_dir, seed, tokens_vis=N
         img = np.frombuffer(canvas.tostring_rgb(), dtype='uint8').reshape((height, width, 3))
 
         fig.tight_layout()
-        plt.savefig(os.path.join(
-            save_dir, 'token_mapes_seed%d_%s.png' % (seed, atten_names[i])), dpi=100)
-        plt.close('all')
     return img
 
 
