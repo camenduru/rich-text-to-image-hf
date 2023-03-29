@@ -69,8 +69,8 @@ def plot_attention_maps(atten_map_list, obj_tokens, save_dir, seed, tokens_vis=N
                 else:
                     axs_xlabel = ''
                     for token_id in obj_tokens[tid]:
-                        axs_xlabel += tokens_vis[token_id.item() -
-                                                 1][:-len('</w>')]
+                        axs_xlabel += ' ' + tokens_vis[token_id.item() -
+                                                       1][:-len('</w>')]
                 axs[tid].set_title(axs_xlabel)
 
         norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
