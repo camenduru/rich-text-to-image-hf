@@ -170,6 +170,20 @@ def main():
                     512,
                     6,
                 ],
+                [
+                    {"ops":[{"insert":"a "},{"attributes":{"font":"slabo"},"insert":"night sky filled with stars"},{"insert":" above a "},{"attributes":{"font":"roboto"},"insert":"turbulent sea with giant waves"},{"insert":"\n"}]},
+                    '',
+                    512,
+                    512,
+                    6,
+                ],
+                [
+                    {"ops":[{"attributes":{"link":"the awe-inspiring sky and ocean in the style of J.M.W. Turner"},"insert":"the awe-inspiring sky and sea"},{"insert":" by "},{"attributes":{"font":"mirza"},"insert":"a coast with flowers and grasses in spring"},{"insert":"\n"}]},
+                    '',
+                    512,
+                    512,
+                    9,
+                ],
             ]
             gr.Examples(examples=examples,
                         inputs=[
