@@ -19,7 +19,11 @@ from PIL import Image, ImageOps
 
 
 help_text = """
-Instructions placeholder.
+If you are getting an error or not getting what you want, here are some possible reasons and suggestions:
+1. Error: the model only supports formatting the complete tooken. An error occurs when part of the token is formatted.
+2. Sometimes the token map does not accurately capture the region of the formatted tokens. You may play with selecting more / less tokens to increase / decrease the area covered by the token maps.
+3. If you use font color and get completely corrupted results, you may consider decrease the color weight lambda.
+4.  Use a different seed.
 """
 
 
@@ -147,6 +151,9 @@ def main():
                 token_map = gr.Image(label='TokenMap')
 
         with gr.Row():
+            gr.Markdown(help_text)
+
+        with gr.Row():
             examples = [
                 [
                     '{"ops":[{"insert":"a "},{"attributes":{"font":"slabo"},"insert":"night sky filled with stars"},{"insert":" above a "},{"attributes":{"font":"roboto"},"insert":"turbulent sea with giant waves"}]}',
@@ -213,8 +220,6 @@ def main():
                         fn=generate,
                         # cache_examples=True,
                         examples_per_page=20)
-        with gr.Row():
-            gr.Markdown(help_text)
 
         generate_button.click(
             fn=generate,
