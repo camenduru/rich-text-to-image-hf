@@ -213,6 +213,8 @@ def main():
                         fn=generate,
                         # cache_examples=True,
                         examples_per_page=20)
+        with gr.Row():
+            gr.Markdown(help_text)
 
         generate_button.click(
             fn=generate,
