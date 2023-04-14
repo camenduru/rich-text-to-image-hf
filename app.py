@@ -102,7 +102,7 @@ def main():
     with gr.Blocks() as demo:
         gr.HTML("""<h1 style="font-weight: 900; margin-bottom: 7px;">Expressive Text-to-Image Generation with Rich Text</h1>
                    <p> Visit our <a href="https://rich-text-to-image.github.io/rich-text-to-json.html">rich-text-to-json interface</a> to generate rich-text JSON input.<p/>
-                    <p> Project webpage: https://rich-text-to-image.github.io/<p/>""")
+                   <p> <a href="https://rich-text-to-image.github.io">Website</a> | <a href="https://github.com/SongweiGe/rich-text-to-image">Code</a> <p/> """)
         with gr.Row():
             with gr.Column():
                 text_input = gr.Textbox(
