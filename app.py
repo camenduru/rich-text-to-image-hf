@@ -19,11 +19,11 @@ from PIL import Image, ImageOps
 
 
 help_text = """
-If you are getting an error or not getting what you want, here are some possible reasons and suggestions:
-1. Error: the model only supports formatting the complete tooken. An error occurs when part of the token is formatted.
-2. Sometimes the token map does not accurately capture the region of the formatted tokens. You may play with selecting more / less tokens to increase / decrease the area covered by the token maps.
+If you are encountering an error or not achieving your desired outcome, here are some potential reasons and recommendations to consider:
+1. If you format only a portion of a word rather than the complete word, an error may occur. 
+2. The token map may not always accurately capture the region of the formatted tokens. If you're experiencing this problem, experiment with selecting more or fewer tokens to expand or reduce the area covered by the token maps.
 3. If you use font color and get completely corrupted results, you may consider decrease the color weight lambda.
-4.  Use a different seed.
+4. Consider using a different seed.
 """
 
 
@@ -101,7 +101,8 @@ def main():
 
     with gr.Blocks() as demo:
         gr.HTML("""<h1 style="font-weight: 900; margin-bottom: 7px;">Expressive Text-to-Image Generation with Rich Text</h1>
-                   <p> Visit our <a href="https://rich-text-to-image.github.io/rich-text-to-json.html">rich-text-to-json interface</a> to generate rich-text JSON input.<p/>""")
+                   <p> Visit our <a href="https://rich-text-to-image.github.io/rich-text-to-json.html">rich-text-to-json interface</a> to generate rich-text JSON input.<p/>
+                    <p> Project webpage: https://rich-text-to-image.github.io/<p/>""")
         with gr.Row():
             with gr.Column():
                 text_input = gr.Textbox(
