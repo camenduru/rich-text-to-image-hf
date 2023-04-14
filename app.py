@@ -113,6 +113,11 @@ def main():
                                  maximum=100000,
                                  step=1,
                                  value=6)
+                color_guidance_weight = gr.Slider(label='Color weight lambda',
+                                                  minimum=0,
+                                                  maximum=2,
+                                                  step=0.1,
+                                                  value=0.5)
                 with gr.Accordion('Other Parameters', open=False):
                     steps = gr.Slider(label='Number of Steps',
                                           minimum=0,
