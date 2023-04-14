@@ -35,6 +35,7 @@ def main():
         seed: int,
         steps: int,
         guidance_weight: float,
+        color_guidance_weight: float,
     ):
         run_dir = 'results/'
         # Load region diffusion model.
@@ -57,7 +58,7 @@ def main():
 
         # create control input for region guidance
         text_format_dict, color_target_token_ids = get_gradient_guidance_input(
-            model, base_tokens, color_text_prompts, color_rgbs, text_format_dict)
+            model, base_tokens, color_text_prompts, color_rgbs, text_format_dict, color_guidance_weight=color_guidance_weight)
 
         seed_everything(seed)
 
@@ -148,6 +149,7 @@ def main():
                     512,
                     512,
                     6,
+                    1,
                 ],
                 [
                     '{"ops": [{"insert": "A pizza with "}, {"attributes": {"size": "50px"}, "insert": "pineapples"}, {"insert": ", pepperonis, and mushrooms on the top, 4k, photorealistic"}]}',
@@ -155,6 +157,7 @@ def main():
                     768,
                     896,
                     6,
+                    1,
                 ],
                 [
                     '{"ops":[{"insert":"a "},{"attributes":{"font":"mirza"},"insert":"beautiful garden"},{"insert":" with a "},{"attributes":{"font":"roboto"},"insert":"snow mountain in the background"},{"insert":""}]}',
@@ -162,6 +165,7 @@ def main():
                     512,
                     512,
                     3,
+                    1,
                 ],
                 [
                     '{"ops":[{"insert":"A close-up 4k dslr photo of a "},{"attributes":{"link":"A cat wearing sunglasses and a bandana around its neck."},"insert":"cat"},{"insert":" riding a scooter. Palm trees in the background."}]}',
@@ -169,6 +173,7 @@ def main():
                     512,
                     512,
                     6,
+                    1,
                 ],
                 [
                     {"ops":[{"insert":"a "},{"attributes":{"font":"slabo"},"insert":"night sky filled with stars"},{"insert":" above a "},{"attributes":{"font":"roboto"},"insert":"turbulent sea with giant waves"},{"insert":"\n"}]},
@@ -176,6 +181,7 @@ def main():
                     512,
                     512,
                     6,
+                    1,
                 ],
                 [
                     {"ops":[{"attributes":{"link":"the awe-inspiring sky and ocean in the style of J.M.W. Turner"},"insert":"the awe-inspiring sky and sea"},{"insert":" by "},{"attributes":{"font":"mirza"},"insert":"a coast with flowers and grasses in spring"},{"insert":"\n"}]},
@@ -183,6 +189,7 @@ def main():
                     512,
                     512,
                     9,
+                    1,
                 ],
             ]
             gr.Examples(examples=examples,
@@ -192,6 +199,7 @@ def main():
                             height,
                             width,
                             seed,
+                            color_guidance_weight,
                         ],
                         outputs=[
                             result,
@@ -211,6 +219,7 @@ def main():
                 seed,
                 steps,
                 guidance_weight,
+                color_guidance_weight,
             ],
             outputs=[result, token_map],
         )
