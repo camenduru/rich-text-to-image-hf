@@ -148,8 +148,8 @@ def main():
 
             with gr.Column():
                 with gr.Row():
-                    plaintext_result = gr.Image(label='Plain-text Result')
-                    richtext_result = gr.Image(label='Rich-text Result')
+                    plaintext_result = gr.Image(label='Plain-text')
+                    richtext_result = gr.Image(label='Rich-text')
                 token_map = gr.Image(label='Token Maps')
 
         with gr.Row():
