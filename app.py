@@ -26,6 +26,24 @@ If you are encountering an error or not achieving your desired outcome, here are
 4. Consider using a different seed.
 """
 
+canvas_html = """<rich-text-editor id="rich-text-root"></rich-text-editor>"""
+load_js = """
+async () => {
+  const scripts = ["https://cdn.quilljs.com/1.3.6/quill.min.js","file=rich-text-to-json.js"]
+  scripts.forEach(src => {
+    const script = document.createElement('script');
+    script.src = src;
+    document.head.appendChild(script);
+  })
+}
+"""
+get_js_data = """
+async (text_input, negative_prompt, height, width, seed, steps, guidance_weight, color_guidance_weight, rich_text_input) => {
+  const richEl = document.getElementById("rich-text-root");
+  const data = richEl? richEl._data : {};
+  return [text_input, negative_prompt, height, width, seed, steps, guidance_weight, color_guidance_weight, JSON.stringify(data)];
+}
+"""
 
 def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -40,12 +58,14 @@ def main():
         steps: int,
         guidance_weight: float,
         color_guidance_weight: float,
+        rich_text_input: str
     ):
         run_dir = 'results/'
         # Load region diffusion model.
         steps = 41 if not steps else steps
         guidance_weight = 8.5 if not guidance_weight else guidance_weight
-
+        text_input = text_input if text_input != '' else rich_text_input
+        print('text_input', text_input)
         # parse json to span attributes
         base_text_prompt, style_text_prompts, footnote_text_prompts, footnote_target_tokens,\
             color_text_prompts, color_names, color_rgbs, size_text_prompts_and_sizes, use_grad_guidance = parse_json(
@@ -99,11 +119,14 @@ def main():
         return [plain_img[0], rich_img[0], token_maps]
 
     with gr.Blocks() as demo:
+        demo.load(None, None, None, _js=load_js)
         gr.HTML("""<h1 style="font-weight: 900; margin-bottom: 7px;">Expressive Text-to-Image Generation with Rich Text</h1>
                    <p> Visit our <a href="https://rich-text-to-image.github.io/rich-text-to-json.html">rich-text-to-json interface</a> to generate rich-text JSON input.<p/>
                    <p> <a href="https://rich-text-to-image.github.io">[Website]</a> | <a href="https://github.com/SongweiGe/rich-text-to-image">[Code]</a> <p/> """)
         with gr.Row():
             with gr.Column():
+                rich_text_el = gr.HTML(canvas_html,elem_id="canvas_html")
+                rich_text_input = gr.Textbox(value="", visible=False)
                 text_input = gr.Textbox(
                     label='Rich-text JSON Input',
                     max_lines=1,
@@ -164,6 +187,7 @@ def main():
                     512,
                     6,
                     1,
+                    None
                 ],
                 [
                     '{"ops":[{"attributes":{"link":"the awe-inspiring sky and ocean in the style of J.M.W. Turner"},"insert":"the awe-inspiring sky and sea"},{"insert":" by "},{"attributes":{"font":"mirza"},"insert":"a coast with flowers and grasses in spring"}]}',
@@ -172,6 +196,7 @@ def main():
                     512,
                     9,
                     1,
+                    None
                 ],
                 [
                     '{"ops":[{"insert":"a Gothic "},{"attributes":{"color":"#b26b00"},"insert":"church"},{"insert":" in a the sunset with a beautiful landscape in the background."}]}',
@@ -180,6 +205,7 @@ def main():
                     512,
                     6,
                     1,
+                    None
                 ],
                 [
                     '{"ops": [{"insert": "A pizza with "}, {"attributes": {"size": "50px"}, "insert": "pineapples"}, {"insert": ", pepperonis, and mushrooms on the top, 4k, photorealistic"}]}',
@@ -188,6 +214,7 @@ def main():
                     896,
                     6,
                     1,
+                    None
                 ],
                 [
                     '{"ops":[{"insert":"a "},{"attributes":{"font":"mirza"},"insert":"beautiful garden"},{"insert":" with a "},{"attributes":{"font":"roboto"},"insert":"snow mountain in the background"},{"insert":""}]}',
@@ -196,6 +223,7 @@ def main():
                     512,
                     3,
                     1,
+                    None
                 ],
                 [
                     '{"ops":[{"insert":"A close-up 4k dslr photo of a "},{"attributes":{"link":"A cat wearing sunglasses and a bandana around its neck."},"insert":"cat"},{"insert":" riding a scooter. Palm trees in the background."}]}',
@@ -204,6 +232,7 @@ def main():
                     512,
                     6,
                     1,
+                    None
                 ],
             ]
             gr.Examples(examples=examples,
@@ -214,6 +243,7 @@ def main():
                             width,
                             seed,
                             color_guidance_weight,
+                            rich_text_input,
                         ],
                         outputs=[
                             plaintext_result,
@@ -235,10 +265,11 @@ def main():
                 steps,
                 guidance_weight,
                 color_guidance_weight,
+                rich_text_input
             ],
             outputs=[plaintext_result, richtext_result, token_map],
+            _js=get_js_data
         )
-
     demo.queue(concurrency_count=1)
     demo.launch(share=False)
 
