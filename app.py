@@ -96,13 +96,12 @@ def main():
                                     text_format_dict=text_format_dict)
         print('time lapses to generate image from rich text: %.4f' %
             (time.time()-begin_time))
-        cat_img = np.concatenate([plain_img[0], rich_img[0]], 1)
-        return [cat_img, token_maps]
+        return [plain_img[0], rich_img[0], token_maps]
 
     with gr.Blocks() as demo:
         gr.HTML("""<h1 style="font-weight: 900; margin-bottom: 7px;">Expressive Text-to-Image Generation with Rich Text</h1>
                    <p> Visit our <a href="https://rich-text-to-image.github.io/rich-text-to-json.html">rich-text-to-json interface</a> to generate rich-text JSON input.<p/>
-                   <p> <a href="https://rich-text-to-image.github.io">Website</a> | <a href="https://github.com/SongweiGe/rich-text-to-image">Code</a> <p/> """)
+                   <p> <a href="https://rich-text-to-image.github.io">[Website]</a> | <a href="https://github.com/SongweiGe/rich-text-to-image">[Code]</a> <p/> """)
         with gr.Row():
             with gr.Column():
                 text_input = gr.Textbox(
@@ -148,8 +147,10 @@ def main():
                         generate_button = gr.Button("Generate")
 
             with gr.Column():
-                result = gr.Image(label='Result')
-                token_map = gr.Image(label='TokenMap')
+                with gr.Row():
+                    plaintext_result = gr.Image(label='Plain-text Result')
+                    richtext_result = gr.Image(label='Rich-text Result')
+                token_map = gr.Image(label='Token Maps')
 
         with gr.Row():
             gr.Markdown(help_text)
@@ -215,7 +216,8 @@ def main():
                             color_guidance_weight,
                         ],
                         outputs=[
-                            result,
+                            plaintext_result,
+                            richtext_result,
                             token_map,
                         ],
                         fn=generate,
@@ -234,7 +236,7 @@ def main():
                 guidance_weight,
                 color_guidance_weight,
             ],
-            outputs=[result, token_map],
+            outputs=[plaintext_result, richtext_result, token_map],
         )
 
     demo.queue(concurrency_count=1)
