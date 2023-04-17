@@ -266,6 +266,7 @@
         })
         function setQuillContents(content) {
             quill.setContents(content);
+            document.body._data = quill.getContents();
         }
         document.body.setQuillContents = setQuillContents
     </script>
