@@ -230,6 +230,56 @@ def main():
                         # cache_examples=True,
                         examples_per_page=20)
         with gr.Row():
+            footnote_examples = [
+                [
+                    '{"ops":[{"insert":"A close-up 4k dslr photo of a "},{"attributes":{"link":"A cat wearing sunglasses and a bandana around its neck."},"insert":"cat"},{"insert":" riding a scooter. Palm trees in the background."}]}',
+                    '',
+                    512,
+                    512,
+                    6,
+                    1,
+                    None
+                ],
+                [
+                    '{"ops":[{"insert":"A "},{"attributes":{"link":"kitchen island with a built-in oven and a stove with gas burners "},"insert":"kitchen island"},{"insert":" next to a "},{"attributes":{"link":"an open refrigerator stocked with fresh produce, dairy products, and beverages. "},"insert":"refrigerator"},{"insert":", by James McDonald and Joarc Architects, home, interior, octane render, deviantart, cinematic, key art, hyperrealism, sun light, sunrays, canon eos c 300, ƒ 1.8, 35 mm, 8k, medium - format print"}]}',
+                    '',
+                    512,
+                    512,
+                    6,
+                    1,
+                    None
+                ],
+                [
+                    '{"ops":[{"insert":"A "},{"attributes":{"link":"Art inspired by kung fu panda, elder, asian art, volumetric lighting, dramatic scene, ultra detailed, realism, chinese"},"insert":"panda"},{"insert":" standing on a cliff by a waterfall, wildlife photography, photograph, high quality, wildlife, f 1.8, soft focus, 8k, national geographic, award - winning photograph by nick nichols"}]}',
+                    '',
+                    512,
+                    512,
+                    6,
+                    1,
+                    None
+                ],
+            ]
+            
+            gr.Examples(examples=footnote_examples,
+                        label='Footnote examples',
+                        inputs=[
+                            text_input,
+                            negative_prompt,
+                            height,
+                            width,
+                            seed,
+                            color_guidance_weight,
+                            rich_text_input,
+                        ],
+                        outputs=[
+                            plaintext_result,
+                            richtext_result,
+                            token_map,
+                        ],
+                        fn=generate,
+                        # cache_examples=True,
+                        examples_per_page=20)
+        with gr.Row():
             color_examples = [
                 [
                     '{"ops":[{"insert":"a Gothic "},{"attributes":{"color":"#b26b00"},"insert":"church"},{"insert":" in a the sunset with a beautiful landscape in the background."}]}',
@@ -245,7 +295,7 @@ def main():
                     '',
                     512,
                     512,
-                    8,
+                    9,
                     1,
                     None
                 ],
@@ -327,38 +377,6 @@ def main():
                         fn=generate,
                         # cache_examples=True,
                         examples_per_page=20)
-        with gr.Row():
-            footnote_examples = [
-                [
-                    '{"ops":[{"insert":"A close-up 4k dslr photo of a "},{"attributes":{"link":"A cat wearing sunglasses and a bandana around its neck."},"insert":"cat"},{"insert":" riding a scooter. Palm trees in the background."}]}',
-                    '',
-                    512,
-                    512,
-                    6,
-                    1,
-                    None
-                ],
-            ]
-            gr.Examples(examples=footnote_examples,
-                        label='Footnote examples',
-                        inputs=[
-                            text_input,
-                            negative_prompt,
-                            height,
-                            width,
-                            seed,
-                            color_guidance_weight,
-                            rich_text_input,
-                        ],
-                        outputs=[
-                            plaintext_result,
-                            richtext_result,
-                            token_map,
-                        ],
-                        fn=generate,
-                        # cache_examples=True,
-                        examples_per_page=20)
-
         generate_button.click(
             fn=generate,
             inputs=[
