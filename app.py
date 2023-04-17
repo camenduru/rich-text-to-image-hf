@@ -121,14 +121,14 @@ def main():
 
     with gr.Blocks() as demo:
         gr.HTML("""<h1 style="font-weight: 900; margin-bottom: 7px;">Expressive Text-to-Image Generation with Rich Text</h1>
-                   <p> Visit our <a href="https://rich-text-to-image.github.io/rich-text-to-json.html">rich-text-to-json interface</a> to generate rich-text JSON input.<p/>
-                   <p> <a href="https://rich-text-to-image.github.io">[Website]</a> | <a href="https://github.com/SongweiGe/rich-text-to-image">[Code]</a> <p/> """)
+                   <p> <a href="https://rich-text-to-image.github.io">[Website]</a> | <a href="https://github.com/SongweiGe/rich-text-to-image">[Code]</a> | <a href="https://arxiv.org/abs/2304.06720">[Paper]</a> <p/> """)
         with gr.Row():
             with gr.Column():
                 rich_text_el = gr.HTML(canvas_html, elem_id="canvas_html")
                 rich_text_input = gr.Textbox(value="", visible=False)
                 text_input = gr.Textbox(
                     label='Rich-text JSON Input',
+                    visible=False,
                     max_lines=1,
                     placeholder='Example: \'{"ops":[{"insert":"a Gothic "},{"attributes":{"color":"#b26b00"},"insert":"church"},{"insert":" in a the sunset with a beautiful landscape in the background.\n"}]}\'')
                 negative_prompt = gr.Textbox(
@@ -171,6 +171,7 @@ def main():
 
             with gr.Column():
                 richtext_result = gr.Image(label='Rich-text')
+                richtext_result.style(height=512)
                 with gr.Row():
                     plaintext_result = gr.Image(label='Plain-text')
                     token_map = gr.Image(label='Token Maps')
@@ -200,7 +201,7 @@ def main():
                 ],
                 [
                     '{"ops":[{"attributes":{"link":"the awe-inspiring sky and ocean in the style of J.M.W. Turner"},"insert":"the awe-inspiring sky and sea"},{"insert":" by "},{"attributes":{"font":"mirza"},"insert":"a coast with flowers and grasses in spring"}]}',
-                    '',
+                    'worst quality, dark, poor quality',
                     512,
                     512,
                     9,
