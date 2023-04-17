@@ -62,6 +62,8 @@ def main():
     ):
         run_dir = 'results/'
         # Load region diffusion model.
+        height = int(height)
+        width = int(width)
         steps = 41 if not steps else steps
         guidance_weight = 8.5 if not guidance_weight else guidance_weight
         text_input = text_input if text_input != '' else rich_text_input
@@ -119,7 +121,7 @@ def main():
         return [plain_img[0], rich_img[0], token_maps]
 
     with gr.Blocks() as demo:
-        demo.load(None, None, None, _js=load_js)
+        # demo.load(None, None, None, _js=load_js)
         gr.HTML("""<h1 style="font-weight: 900; margin-bottom: 7px;">Expressive Text-to-Image Generation with Rich Text</h1>
                    <p> Visit our <a href="https://rich-text-to-image.github.io/rich-text-to-json.html">rich-text-to-json interface</a> to generate rich-text JSON input.<p/>
                    <p> <a href="https://rich-text-to-image.github.io">[Website]</a> | <a href="https://github.com/SongweiGe/rich-text-to-image">[Code]</a> <p/> """)
@@ -134,7 +136,7 @@ def main():
                 negative_prompt = gr.Textbox(
                     label='Negative Prompt',
                     max_lines=1,
-                    placeholder='')
+                    placeholder='Example: poor quality, blurry, dark, low resolution, low quality, worst quality')
                 seed = gr.Slider(label='Seed',
                                  minimum=0,
                                  maximum=100000,
@@ -179,39 +181,12 @@ def main():
             gr.Markdown(help_text)
 
         with gr.Row():
-            examples = [
+            style_examples = [
                 [
                     '{"ops":[{"insert":"a "},{"attributes":{"font":"slabo"},"insert":"night sky filled with stars"},{"insert":" above a "},{"attributes":{"font":"roboto"},"insert":"turbulent sea with giant waves"}]}',
                     '',
                     512,
                     512,
-                    6,
-                    1,
-                    None
-                ],
-                [
-                    '{"ops":[{"attributes":{"link":"the awe-inspiring sky and ocean in the style of J.M.W. Turner"},"insert":"the awe-inspiring sky and sea"},{"insert":" by "},{"attributes":{"font":"mirza"},"insert":"a coast with flowers and grasses in spring"}]}',
-                    '',
-                    512,
-                    512,
-                    9,
-                    1,
-                    None
-                ],
-                [
-                    '{"ops":[{"insert":"a Gothic "},{"attributes":{"color":"#b26b00"},"insert":"church"},{"insert":" in a the sunset with a beautiful landscape in the background."}]}',
-                    '',
-                    512,
-                    512,
-                    6,
-                    1,
-                    None
-                ],
-                [
-                    '{"ops": [{"insert": "A pizza with "}, {"attributes": {"size": "50px"}, "insert": "pineapples"}, {"insert": ", pepperonis, and mushrooms on the top, 4k, photorealistic"}]}',
-                    'blurry, art, painting, rendering, drawing, sketch, ugly, duplicate, morbid, mutilated, mutated, deformed, disfigured low quality, worst quality',
-                    768,
-                    896,
                     6,
                     1,
                     None
@@ -226,6 +201,135 @@ def main():
                     None
                 ],
                 [
+                    '{"ops":[{"attributes":{"link":"the awe-inspiring sky and ocean in the style of J.M.W. Turner"},"insert":"the awe-inspiring sky and sea"},{"insert":" by "},{"attributes":{"font":"mirza"},"insert":"a coast with flowers and grasses in spring"}]}',
+                    '',
+                    512,
+                    512,
+                    9,
+                    1,
+                    None
+                ],
+            ]
+            gr.Examples(examples=style_examples,
+                        label='Font style examples',
+                        inputs=[
+                            text_input,
+                            negative_prompt,
+                            height,
+                            width,
+                            seed,
+                            color_guidance_weight,
+                            rich_text_input,
+                        ],
+                        outputs=[
+                            plaintext_result,
+                            richtext_result,
+                            token_map,
+                        ],
+                        fn=generate,
+                        # cache_examples=True,
+                        examples_per_page=20)
+        with gr.Row():
+            color_examples = [
+                [
+                    '{"ops":[{"insert":"a Gothic "},{"attributes":{"color":"#b26b00"},"insert":"church"},{"insert":" in a the sunset with a beautiful landscape in the background."}]}',
+                    '',
+                    512,
+                    512,
+                    6,
+                    1,
+                    None
+                ],
+                [
+                    '{"ops":[{"insert":"A mesmerizing sight that captures the beauty of a "},{"attributes":{"color":"#4775fc"},"insert":"rose"},{"insert":" blooming, close up"}]}',
+                    '',
+                    512,
+                    512,
+                    8,
+                    1,
+                    None
+                ],
+                [
+                    '{"ops":[{"insert":"A "},{"attributes":{"color":"#FFD700"},"insert":"marble statue of a wolf\'s head and shoulder"},{"insert":", surrounded by colorful flowers michelangelo, detailed, intricate, full of color, led lighting, trending on artstation, 4 k, hyperrealistic, 3 5 mm, focused, extreme details, unreal engine 5, masterpiece "}]}',
+                    '',
+                    512,
+                    512,
+                    5,
+                    0.6,
+                    None
+                ],
+            ]
+            gr.Examples(examples=color_examples,
+                        label='Font color examples',
+                        inputs=[
+                            text_input,
+                            negative_prompt,
+                            height,
+                            width,
+                            seed,
+                            color_guidance_weight,
+                            rich_text_input,
+                        ],
+                        outputs=[
+                            plaintext_result,
+                            richtext_result,
+                            token_map,
+                        ],
+                        fn=generate,
+                        # cache_examples=True,
+                        examples_per_page=20)
+        with gr.Row():
+            size_examples = [
+                [
+                    '{"ops": [{"insert": "A pizza with "}, {"attributes": {"size": "60px"}, "insert": "pineapple"}, {"insert": ", pepperoni, and mushroom on the top, 4k, photorealistic"}]}',
+                    'blurry, art, painting, rendering, drawing, sketch, ugly, duplicate, morbid, mutilated, mutated, deformed, disfigured low quality, worst quality',
+                    512,
+                    512,
+                    13,
+                    1,
+                    None
+                ],
+                [
+                    '{"ops": [{"insert": "A pizza with pineapple, "}, {"attributes": {"size": "20px"}, "insert": "pepperoni"}, {"insert": ", and mushroom on the top, 4k, photorealistic"}]}',
+                    'blurry, art, painting, rendering, drawing, sketch, ugly, duplicate, morbid, mutilated, mutated, deformed, disfigured low quality, worst quality',
+                    512,
+                    512,
+                    13,
+                    1,
+                    None
+                ],
+                [
+                    '{"ops": [{"insert": "A pizza with pineapple, pepperoni, and"}, {"attributes": {"size": "70px"}, "insert": "mushroom"}, {"insert": " on the top, 4k, photorealistic"}]}',
+                    'blurry, art, painting, rendering, drawing, sketch, ugly, duplicate, morbid, mutilated, mutated, deformed, disfigured low quality, worst quality',
+                    512,
+                    512,
+                    13,
+                    1,
+                    None
+                ],
+            ]
+            gr.Examples(examples=size_examples,
+                        label='Font size examples',
+                        inputs=[
+                            text_input,
+                            negative_prompt,
+                            height,
+                            width,
+                            seed,
+                            color_guidance_weight,
+                            rich_text_input,
+                        ],
+                        outputs=[
+                            plaintext_result,
+                            richtext_result,
+                            token_map,
+                        ],
+                        fn=generate,
+                        # cache_examples=True,
+                        examples_per_page=20)
+        with gr.Row():
+            footnote_examples = [
+                [
                     '{"ops":[{"insert":"A close-up 4k dslr photo of a "},{"attributes":{"link":"A cat wearing sunglasses and a bandana around its neck."},"insert":"cat"},{"insert":" riding a scooter. Palm trees in the background."}]}',
                     '',
                     512,
@@ -235,7 +339,8 @@ def main():
                     None
                 ],
             ]
-            gr.Examples(examples=examples,
+            gr.Examples(examples=footnote_examples,
+                        label='Footnote examples',
                         inputs=[
                             text_input,
                             negative_prompt,
