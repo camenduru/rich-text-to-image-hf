@@ -26,21 +26,12 @@ If you are encountering an error or not achieving your desired outcome, here are
 4. Consider using a different seed.
 """
 
-canvas_html = """<rich-text-editor id="rich-text-root"></rich-text-editor>"""
-load_js = """
-async () => {
-  const scripts = ["https://cdn.quilljs.com/1.3.6/quill.min.js","file=rich-text-to-json.js"]
-  scripts.forEach(src => {
-    const script = document.createElement('script');
-    script.src = src;
-    document.head.appendChild(script);
-  })
-}
-"""
+
+canvas_html = """<iframe id='rich-text-root' style='width:100%' height='360px' src='file=rich-text-to-json-iframe.html' frameborder='0' scrolling='no'></iframe>"""
 get_js_data = """
 async (text_input, negative_prompt, height, width, seed, steps, guidance_weight, color_guidance_weight, rich_text_input) => {
   const richEl = document.getElementById("rich-text-root");
-  const data = richEl? richEl._data : {};
+  const data = richEl? richEl.contentDocument.body._data : {};
   return [text_input, negative_prompt, height, width, seed, steps, guidance_weight, color_guidance_weight, JSON.stringify(data)];
 }
 """
@@ -121,13 +112,12 @@ def main():
         return [plain_img[0], rich_img[0], token_maps]
 
     with gr.Blocks() as demo:
-        # demo.load(None, None, None, _js=load_js)
         gr.HTML("""<h1 style="font-weight: 900; margin-bottom: 7px;">Expressive Text-to-Image Generation with Rich Text</h1>
                    <p> Visit our <a href="https://rich-text-to-image.github.io/rich-text-to-json.html">rich-text-to-json interface</a> to generate rich-text JSON input.<p/>
                    <p> <a href="https://rich-text-to-image.github.io">[Website]</a> | <a href="https://github.com/SongweiGe/rich-text-to-image">[Code]</a> <p/> """)
         with gr.Row():
             with gr.Column():
-                rich_text_el = gr.HTML(canvas_html,elem_id="canvas_html")
+                rich_text_el = gr.HTML(canvas_html, elem_id="canvas_html")
                 rich_text_input = gr.Textbox(value="", visible=False)
                 text_input = gr.Textbox(
                     label='Rich-text JSON Input',
@@ -172,10 +162,10 @@ def main():
                         generate_button = gr.Button("Generate")
 
             with gr.Column():
+                richtext_result = gr.Image(label='Rich-text')
                 with gr.Row():
                     plaintext_result = gr.Image(label='Plain-text')
-                    richtext_result = gr.Image(label='Rich-text')
-                token_map = gr.Image(label='Token Maps')
+                    token_map = gr.Image(label='Token Maps')
 
         with gr.Row():
             gr.Markdown(help_text)

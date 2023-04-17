@@ -4,7 +4,7 @@ emoji: 🌍
 colorFrom: indigo
 colorTo: pink
 sdk: gradio
-sdk_version: 3.23.0
+sdk_version: 3.27.0
 app_file: app.py
 pinned: false
 ---
