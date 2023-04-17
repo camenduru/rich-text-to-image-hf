@@ -35,6 +35,14 @@ async (text_input, negative_prompt, height, width, seed, steps, guidance_weight,
   return [text_input, negative_prompt, height, width, seed, steps, guidance_weight, color_guidance_weight, JSON.stringify(data)];
 }
 """
+set_js_data = """
+async (text_input) => {
+  const richEl = document.getElementById("rich-text-root");
+  const data = text_input ? JSON.parse(text_input) : null;
+  if (richEl && data) richEl.contentDocument.body.setQuillContents(data);
+}
+"""
+
 
 def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -57,7 +65,7 @@ def main():
         width = int(width)
         steps = 41 if not steps else steps
         guidance_weight = 8.5 if not guidance_weight else guidance_weight
-        text_input = text_input if text_input != '' else rich_text_input
+        text_input = rich_text_input if rich_text_input != '' else text_input
         print('text_input', text_input)
         # parse json to span attributes
         base_text_prompt, style_text_prompts, footnote_text_prompts, footnote_target_tokens,\
@@ -383,6 +391,7 @@ def main():
             outputs=[plaintext_result, richtext_result, token_map],
             _js=get_js_data
         )
+        text_input.change(fn=None, inputs=[text_input], outputs=None, _js=set_js_data, queue=False)
     demo.queue(concurrency_count=1)
     demo.launch(share=False)
 

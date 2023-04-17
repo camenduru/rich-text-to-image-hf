@@ -245,7 +245,7 @@
             return url;
         }
         const SizeStyle = Quill.import('attributors/style/size');
-        SizeStyle.whitelist = ['10px', '18px', '32px', '50px', '64px'];
+        SizeStyle.whitelist = ['10px', '18px', '20px', '32px', '50px', '60px', '64px', '70px'];
         Quill.register(SizeStyle, true);
         Quill.register(Link, true);
         Quill.register(Font, true);
@@ -264,6 +264,10 @@
             // keep qull data inside _data to communicate with Gradio
             document.body._data = quill.getContents()
         })
+        function setQuillContents(content) {
+            quill.setContents(content);
+        }
+        document.body.setQuillContents = setQuillContents
     </script>
 </body>
 
