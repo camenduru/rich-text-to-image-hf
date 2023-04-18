@@ -123,7 +123,8 @@ def main():
         gr.HTML("""<h1 style="font-weight: 900; margin-bottom: 7px;">Expressive Text-to-Image Generation with Rich Text</h1>
                    <p> <a href="https://songweige.github.io/">Songwei Ge</a>, <a href="https://taesung.me/">Taesung Park</a>, <a href="https://www.cs.cmu.edu/~junyanz/">Jun-Yan Zhu</a>, <a href="https://jbhuang0604.github.io/">Jia-Bin Huang</a> <p/> 
                    <p> UMD, Adobe, CMU <p/> 
-                   <p> <a href="https://rich-text-to-image.github.io">[Website]</a> | <a href="https://github.com/SongweiGe/rich-text-to-image">[Code]</a> | <a href="https://arxiv.org/abs/2304.06720">[Paper]</a> <p/> """)
+                   <p> <a href="https://huggingface.co/spaces/songweig/rich-text-to-image?duplicate=true"><img src="https://bit.ly/3gLdBN6" style="display:inline;"alt="Duplicate Space"></a> | <a href="https://rich-text-to-image.github.io">[Website]</a> | <a href="https://github.com/SongweiGe/rich-text-to-image">[Code]</a> | <a href="https://arxiv.org/abs/2304.06720">[Paper]</a><p/>
+                   <p> For faster inference without waiting in queue, you may duplicate the space and upgrade to GPU in settings.""")
         with gr.Row():
             with gr.Column():
                 rich_text_el = gr.HTML(canvas_html, elem_id="canvas_html")
@@ -150,7 +151,7 @@ def main():
                 with gr.Accordion('Other Parameters', open=False):
                     steps = gr.Slider(label='Number of Steps',
                                           minimum=0,
-                                          maximum=500,
+                                          maximum=100,
                                           step=1,
                                           value=41)
                     guidance_weight = gr.Slider(label='CFG weight',
@@ -158,11 +159,11 @@ def main():
                                                maximum=50,
                                                step=0.1,
                                                value=8.5)
-                    width = gr.Dropdown(choices=[512, 768],
+                    width = gr.Dropdown(choices=[512],
                                     value=512,
                                     label='Width',
                                     visible=True)
-                    height = gr.Dropdown(choices=[512, 768],
+                    height = gr.Dropdown(choices=[512],
                                     value=512,
                                     label='height',
                                     visible=True)
