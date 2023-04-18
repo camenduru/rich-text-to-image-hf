@@ -156,11 +156,11 @@ def main():
                                                maximum=50,
                                                step=0.1,
                                                value=8.5)
-                    width = gr.Dropdown(choices=[512, 768, 896],
+                    width = gr.Dropdown(choices=[512, 768],
                                     value=512,
                                     label='Width',
                                     visible=True)
-                    height = gr.Dropdown(choices=[512, 768, 896],
+                    height = gr.Dropdown(choices=[512, 768],
                                     value=512,
                                     label='height',
                                     visible=True)
