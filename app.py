@@ -16,6 +16,7 @@ from utils.richtext_utils import seed_everything, parse_json, get_region_diffusi
 
 import gradio as gr
 from PIL import Image, ImageOps
+from share_btn import community_icon_html, loading_icon_html, share_js, css
 
 
 help_text = """
@@ -43,6 +44,21 @@ async (text_input) => {
 }
 """
 
+get_window_url_params = """
+async (url_params) => {
+    const params = new URLSearchParams(window.location.search);
+    url_params = Object.fromEntries(params);
+    return [url_params];
+}
+"""
+
+
+def load_url_params(url_params):
+    if 'prompt' in url_params:
+        return gr.update(visible=True), url_params
+    else:
+        return gr.update(visible=False), url_params
+
 
 def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -67,6 +83,8 @@ def main():
         guidance_weight = 8.5 if not guidance_weight else guidance_weight
         text_input = rich_text_input if rich_text_input != '' else text_input
         print('text_input', text_input)
+        if (text_input == '' or rich_text_input == ''):
+            raise gr.Error("Please enter some text.")
         # parse json to span attributes
         base_text_prompt, style_text_prompts, footnote_text_prompts, footnote_target_tokens,\
             color_text_prompts, color_names, color_rgbs, size_text_prompts_and_sizes, use_grad_guidance = parse_json(
@@ -96,7 +114,8 @@ def main():
         plain_img = model.produce_attn_maps([base_text_prompt], [negative_text],
                                             height=height, width=width, num_inference_steps=steps,
                                             guidance_scale=guidance_weight)
-        print('time lapses to get attention maps: %.4f' % (time.time()-begin_time))
+        print('time lapses to get attention maps: %.4f' %
+              (time.time()-begin_time))
         color_obj_masks, _ = get_token_maps(
             model.attention_maps, run_dir, width//8, height//8, color_target_token_ids, seed)
         model.masks, token_maps = get_token_maps(
@@ -104,7 +123,7 @@ def main():
         color_obj_masks = [transforms.functional.resize(color_obj_mask, (height, width),
                                                         interpolation=transforms.InterpolationMode.BICUBIC,
                                                         antialias=True)
-                        for color_obj_mask in color_obj_masks]
+                           for color_obj_mask in color_obj_masks]
         text_format_dict['color_obj_atten'] = color_obj_masks
         model.remove_evaluation_hooks()
 
@@ -112,14 +131,15 @@ def main():
         begin_time = time.time()
         seed_everything(seed)
         rich_img = model.prompt_to_img(region_text_prompts, [negative_text],
-                                    height=height, width=width, num_inference_steps=steps,
-                                    guidance_scale=guidance_weight, use_grad_guidance=use_grad_guidance,
-                                    text_format_dict=text_format_dict)
+                                       height=height, width=width, num_inference_steps=steps,
+                                       guidance_scale=guidance_weight, use_grad_guidance=use_grad_guidance,
+                                       text_format_dict=text_format_dict)
         print('time lapses to generate image from rich text: %.4f' %
-            (time.time()-begin_time))
+              (time.time()-begin_time))
         return [plain_img[0], rich_img[0], token_maps]
 
-    with gr.Blocks() as demo:
+    with gr.Blocks(css=css) as demo:
+        url_params = gr.JSON({}, visible=False, label="URL Params")
         gr.HTML("""<h1 style="font-weight: 900; margin-bottom: 7px;">Expressive Text-to-Image Generation with Rich Text</h1>
                    <p> <a href="https://songweige.github.io/">Songwei Ge</a>, <a href="https://taesung.me/">Taesung Park</a>, <a href="https://www.cs.cmu.edu/~junyanz/">Jun-Yan Zhu</a>, <a href="https://jbhuang0604.github.io/">Jia-Bin Huang</a> <p/> 
                    <p> UMD, Adobe, CMU <p/> 
@@ -133,16 +153,22 @@ def main():
                     label='Rich-text JSON Input',
                     visible=False,
                     max_lines=1,
-                    placeholder='Example: \'{"ops":[{"insert":"a Gothic "},{"attributes":{"color":"#b26b00"},"insert":"church"},{"insert":" in a the sunset with a beautiful landscape in the background.\n"}]}\'')
+                    placeholder='Example: \'{"ops":[{"insert":"a Gothic "},{"attributes":{"color":"#b26b00"},"insert":"church"},{"insert":" in a the sunset with a beautiful landscape in the background.\n"}]}\'',
+                    elem_id="text_input"
+                )
                 negative_prompt = gr.Textbox(
                     label='Negative Prompt',
                     max_lines=1,
-                    placeholder='Example: poor quality, blurry, dark, low resolution, low quality, worst quality')
+                    placeholder='Example: poor quality, blurry, dark, low resolution, low quality, worst quality',
+                    elem_id="negative_prompt"
+                )
                 seed = gr.Slider(label='Seed',
                                  minimum=0,
                                  maximum=100000,
                                  step=1,
-                                 value=6)
+                                 value=6,
+                                 elem_id="seed"
+                                 )
                 color_guidance_weight = gr.Slider(label='Color weight lambda',
                                                   minimum=0,
                                                   maximum=2,
@@ -150,35 +176,44 @@ def main():
                                                   value=0.5)
                 with gr.Accordion('Other Parameters', open=False):
                     steps = gr.Slider(label='Number of Steps',
-                                          minimum=0,
-                                          maximum=100,
-                                          step=1,
-                                          value=41)
+                                      minimum=0,
+                                      maximum=100,
+                                      step=1,
+                                      value=41)
                     guidance_weight = gr.Slider(label='CFG weight',
-                                               minimum=0,
-                                               maximum=50,
-                                               step=0.1,
-                                               value=8.5)
+                                                minimum=0,
+                                                maximum=50,
+                                                step=0.1,
+                                                value=8.5)
                     width = gr.Dropdown(choices=[512],
-                                    value=512,
-                                    label='Width',
-                                    visible=True)
+                                        value=512,
+                                        label='Width',
+                                        visible=True)
                     height = gr.Dropdown(choices=[512],
-                                    value=512,
-                                    label='height',
-                                    visible=True)
-                    
+                                         value=512,
+                                         label='height',
+                                         visible=True)
+
                 with gr.Row():
                     with gr.Column(scale=1, min_width=100):
                         generate_button = gr.Button("Generate")
-
+                        load_params_button = gr.Button(
+                            "Load from URL Params", visible=True)
             with gr.Column():
-                richtext_result = gr.Image(label='Rich-text')
+                richtext_result = gr.Image(
+                    label='Rich-text', elem_id="rich-text-image")
                 richtext_result.style(height=512)
                 with gr.Row():
-                    plaintext_result = gr.Image(label='Plain-text')
+                    plaintext_result = gr.Image(
+                        label='Plain-text', elem_id="plain-text-image")
                     token_map = gr.Image(label='Token Maps')
-
+                with gr.Row(visible=False) as share_row:
+                    with gr.Group(elem_id="share-btn-container"):
+                        community_icon = gr.HTML(community_icon_html)
+                        loading_icon = gr.HTML(loading_icon_html)
+                        share_button = gr.Button(
+                            "Share to community", elem_id="share-btn")
+                        share_button.click(None, [], [], _js=share_js)
         with gr.Row():
             gr.Markdown(help_text)
 
@@ -261,7 +296,7 @@ def main():
                     None
                 ],
             ]
-            
+
             gr.Examples(examples=footnote_examples,
                         label='Footnote examples',
                         inputs=[
@@ -379,7 +414,7 @@ def main():
                         fn=generate,
                         # cache_examples=True,
                         examples_per_page=20)
-        generate_button.click(
+        generate_button.click(fn=lambda: gr.update(visible=False), inputs=None, outputs=share_row, queue=False).then(
             fn=generate,
             inputs=[
                 text_input,
@@ -394,8 +429,19 @@ def main():
             ],
             outputs=[plaintext_result, richtext_result, token_map],
             _js=get_js_data
+        ).then(
+            fn=lambda: gr.update(visible=True), inputs=None, outputs=share_row, queue=False)
+        text_input.change(
+            fn=None, inputs=[text_input], outputs=None, _js=set_js_data, queue=False)
+        # load url param prompt to textinput
+        load_params_button.click(fn=lambda x: x['prompt'], inputs=[
+                                 url_params], outputs=[text_input], queue=False)
+        demo.load(
+            fn=load_url_params,
+            inputs=[url_params],
+            outputs=[load_params_button, url_params],
+            _js=get_window_url_params
         )
-        text_input.change(fn=None, inputs=[text_input], outputs=None, _js=set_js_data, queue=False)
     demo.queue(concurrency_count=1)
     demo.launch(share=False)
 
