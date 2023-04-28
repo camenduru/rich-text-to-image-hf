@@ -27,7 +27,9 @@ share_js = """async () => {
         return new File([blob], fileName, { type: 'image/png'}); 
 	}
     const gradioEl = document.querySelector("gradio-app").shadowRoot || document.querySelector('body > gradio-app');
-    const text_input = gradioEl.querySelector('#text_input input').value;
+    const richEl = document.getElementById("rich-text-root");
+    const data = richEl? richEl.contentDocument.body._data : {};
+    const text_input = JSON.stringify(data);
     const negative_prompt = gradioEl.querySelector('#negative_prompt input').value;
     const seed = gradioEl.querySelector('#seed input').value;
     const richTextImg = gradioEl.querySelector('#rich-text-image img');
