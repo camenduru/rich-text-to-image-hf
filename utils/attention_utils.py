@@ -236,8 +236,6 @@ def get_token_maps(selfattn_maps, crossattn_maps, n_maps, save_dir, width, heigh
     fig = plt.figure()
     plt.imshow(clusters)
     plt.axis('off')
-    plt.savefig(os.path.join(save_dir, 'segmentation_k%d.jpg' % (num_segments)),
-                bbox_inches='tight', pad_inches=0)
     if return_vis:
         canvas = fig.canvas
         canvas.draw()

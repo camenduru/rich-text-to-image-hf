@@ -79,6 +79,7 @@ def main():
         background_aug: bool,
     ):
         run_dir = 'results/'
+        os.makedirs(run_dir, exist_ok=True)
         # Load region diffusion model.
         height = int(height)
         width = int(width)
