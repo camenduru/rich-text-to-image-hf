@@ -27,7 +27,7 @@ def seed_everything(seed):
     torch.cuda.manual_seed(seed)
 
 
-def hex_to_rgb(hex_string, return_nearest_color=False, device='cuda'):
+def hex_to_rgb(hex_string, return_nearest_color=False):
     r"""
     Covert Hex triplet to RGB triplet.
     """
@@ -40,8 +40,8 @@ def hex_to_rgb(hex_string, return_nearest_color=False, device='cuda'):
     rgb = torch.FloatTensor((red, green, blue))[None, :, None, None]/255.
     if return_nearest_color:
         nearest_color = find_nearest_color(rgb)
-        return rgb.to(device), nearest_color
-    return rgb.to(device)
+        return rgb.cuda(), nearest_color
+    return rgb.cuda()
 
 
 def find_nearest_color(rgb):
@@ -56,7 +56,7 @@ def find_nearest_color(rgb):
     return nearest_color
 
 
-def font2style(font, device='cuda'):
+def font2style(font):
     r"""
     Convert the font name to the style name.
     """
@@ -71,7 +71,7 @@ def font2style(font, device='cuda'):
             'Akronim': 'Abstract Cubism, Pablo Picasso', }[font]
 
 
-def parse_json(json_str, device):
+def parse_json(json_str):
     r"""
     Convert the JSON string to attributes.
     """
@@ -121,7 +121,7 @@ def parse_json(json_str, device):
             if 'color' in span['attributes']:
                 use_grad_guidance = True
                 color_rgb, nearest_color = hex_to_rgb(
-                    span['attributes']['color'], True, device=device)
+                    span['attributes']['color'], True)
                 if prev_color_rgb == color_rgb:
                     prev_text_prompt = color_text_prompts[-1]
                     color_text_prompts[-1] = prev_text_prompt + \
@@ -197,8 +197,8 @@ def get_attention_control_input(model, base_tokens, size_text_prompts_and_sizes)
             word_pos.append(base_tokens.index(size_token)+1)
             font_sizes.append(font_size)
     if len(word_pos) > 0:
-        word_pos = torch.LongTensor(word_pos).to(model.device)
-        font_sizes = torch.FloatTensor(font_sizes).to(model.device)
+        word_pos = torch.LongTensor(word_pos).cuda()
+        font_sizes = torch.FloatTensor(font_sizes).cuda()
     else:
         word_pos = None
         font_sizes = None
