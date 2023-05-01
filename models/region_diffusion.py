@@ -38,6 +38,8 @@ class RegionDiffusion(nn.Module):
 
         self.masks = []
         self.attention_maps = None
+        self.selfattn_maps = None
+        self.crossattn_maps = None
         self.color_loss = torch.nn.functional.mse_loss
         self.forward_replacement_hooks = []
 
