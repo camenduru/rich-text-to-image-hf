@@ -285,8 +285,10 @@ class RegionDiffusion(nn.Module):
         We reset attention maps because we append them while getting hooks
         to visualize attention maps for every step.
         """
-        for key in self.attention_maps:
-            self.attention_maps[key] = []
+        for key in self.selfattn_maps:
+            self.selfattn_maps[key] = []
+        for key in self.crossattn_maps:
+            self.crossattn_maps[key] = []
 
     def register_evaluation_hooks(self):
         r"""Function for registering hooks during evaluation.

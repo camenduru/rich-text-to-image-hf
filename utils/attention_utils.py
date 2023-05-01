@@ -123,6 +123,7 @@ def plot_attention_maps(atten_map_list, obj_tokens, save_dir, seed, tokens_vis=N
                             dtype='uint8').reshape((height, width, 3))
 
         fig.tight_layout()
+        plt.close()
     return img
 
 
