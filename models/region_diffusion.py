@@ -41,6 +41,7 @@ class RegionDiffusion(nn.Module):
         self.selfattn_maps = None
         self.crossattn_maps = None
         self.color_loss = torch.nn.functional.mse_loss
+        self.forward_hooks = []
         self.forward_replacement_hooks = []
 
         print(f'[INFO] loaded stable diffusion!')

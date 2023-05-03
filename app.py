@@ -112,6 +112,7 @@ def main():
         # get token maps from plain text to image generation.
         begin_time = time.time()
         if model.selfattn_maps is None and model.crossattn_maps is None:
+            model.remove_tokenmap_hooks()
             model.register_tokenmap_hooks()
         else:
             model.reset_attention_maps()
@@ -344,7 +345,7 @@ def main():
                     '',
                     5,
                     0.3,
-                    0.3,
+                    0.5,
                     6,
                     0.5,
                     None,
