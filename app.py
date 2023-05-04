@@ -116,6 +116,7 @@ def main():
             model.register_tokenmap_hooks()
         else:
             model.reset_attention_maps()
+            model.remove_tokenmap_hooks()
         plain_img = model.produce_attn_maps([base_text_prompt], [negative_text],
                                             height=height, width=width, num_inference_steps=steps,
                                             guidance_scale=guidance_weight)
