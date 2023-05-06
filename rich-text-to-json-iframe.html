@@ -312,6 +312,30 @@
         }
         document.body.setQuillContents = setQuillContents
     </script>
+    <script src="https://unpkg.com/@popperjs/core@2/dist/umd/popper.min.js"></script>
+    <script src="https://unpkg.com/tippy.js@6/dist/tippy-bundle.umd.js"></script>
+    <script>
+        // With the above scripts loaded, you can call `tippy()` with a CSS
+        // selector and a `content` prop:
+        tippy('.ql-font', {
+            content: 'Add a style to the token',
+        });
+        tippy('.ql-size', {
+            content: 'Reweight the token',
+        });
+        tippy('.ql-color', {
+            content: 'Pick a color for the token',
+        });
+        tippy('.ql-link', {
+            content: 'Clarify the token',
+        });
+        tippy('.ql-strike', {
+            content: 'Change the token weight to be negative',
+        });
+        tippy('.ql-clean', {
+            content: 'Remove all the formats',
+        });
+    </script>
 </body>
 
 </html>
