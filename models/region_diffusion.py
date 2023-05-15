@@ -84,13 +84,13 @@ class RegionDiffusion(nn.Module):
         return text_embeddings
 
     def produce_latents(self, text_embeddings, height=512, width=512, num_inference_steps=50, guidance_scale=7.5,
-                        latents=None, use_guidance=False, text_format_dict={}, inject_selfattn=0, bg_aug_end=1000):
+                        latents=None, use_guidance=False, text_format_dict={}, inject_selfattn=0, inject_background=0):
 
         if latents is None:
             latents = torch.randn(
                 (1, self.unet.in_channels, height // 8, width // 8), device=self.device)
 
-        if inject_selfattn > 0:
+        if inject_selfattn > 0 or inject_background > 0:
             latents_reference = latents.clone().detach()
         self.scheduler.set_timesteps(num_inference_steps)
         n_styles = text_embeddings.shape[0]-1
@@ -102,11 +102,12 @@ class RegionDiffusion(nn.Module):
                 with torch.no_grad():
                     # tokens without any attributes
                     feat_inject_step = t > (1-inject_selfattn) * 1000
+                    background_inject_step = i == int(inject_background * len(self.scheduler.timesteps)) and inject_background > 0
                     noise_pred_uncond_cur = self.unet(latents, t, encoder_hidden_states=text_embeddings[:1],
-                                                      text_format_dict={})['sample']
+                                                    text_format_dict={})['sample']
                     noise_pred_text_cur = self.unet(latents, t, encoder_hidden_states=text_embeddings[-1:],
                                                     text_format_dict=text_format_dict)['sample']
-                    if inject_selfattn > 0:
+                    if inject_selfattn > 0 or inject_background > 0:
                         noise_pred_uncond_refer = self.unet(latents_reference, t, encoder_hidden_states=text_embeddings[:1],
                                                             text_format_dict={})['sample']
                         self.register_selfattn_hooks(feat_inject_step)
@@ -117,33 +118,18 @@ class RegionDiffusion(nn.Module):
                     noise_pred_text = noise_pred_text_cur * self.masks[-1]
                     # tokens with attributes
                     for style_i, mask in enumerate(self.masks[:-1]):
-                        if t > bg_aug_end:
-                            rand_rgb = torch.rand([1, 3, 1, 1]).cuda()
-                            black_background = torch.ones(
-                                [1, 3, height, width]).cuda()*rand_rgb
-                            black_latent = self.encode_imgs(
-                                black_background)
-                            noise = torch.randn_like(black_latent)
-                            black_latent_noisy = self.scheduler.add_noise(
-                                black_latent, noise, t)
-                            masked_latent = (
-                                mask > 0.001) * latents + (mask < 0.001) * black_latent_noisy
-                            noise_pred_uncond_cur = self.unet(masked_latent, t, encoder_hidden_states=text_embeddings[:1],
-                                                              text_format_dict={})['sample']
-                        else:
-                            masked_latent = latents
                         self.register_replacement_hooks(feat_inject_step)
-                        noise_pred_text_cur = self.unet(masked_latent, t, encoder_hidden_states=text_embeddings[style_i+1:style_i+2],
+                        noise_pred_text_cur = self.unet(latents, t, encoder_hidden_states=text_embeddings[style_i+1:style_i+2],
                                                         text_format_dict={})['sample']
                         self.remove_replacement_hooks()
                         noise_pred_uncond = noise_pred_uncond + noise_pred_uncond_cur*mask
                         noise_pred_text = noise_pred_text + noise_pred_text_cur*mask
-
+                
                 # perform classifier-free guidance
                 noise_pred = noise_pred_uncond + guidance_scale * \
                     (noise_pred_text - noise_pred_uncond)
 
-                if inject_selfattn > 0:
+                if inject_selfattn > 0 or inject_background > 0:
                     noise_pred_refer = noise_pred_uncond_refer + guidance_scale * \
                         (noise_pred_text_refer - noise_pred_uncond_refer)
 
@@ -174,12 +160,15 @@ class RegionDiffusion(nn.Module):
                                 imgs*attn_map[:, 0]).sum(2).sum(2)/attn_map[:, 0].sum()
                             loss = self.color_loss(
                                 avg_rgb, rgb_val[:, :, 0, 0])*100
-                            # print(loss)
                             loss_total += loss
                         loss_total.backward()
                     latents = (
-                        latents - latents.grad * text_format_dict['color_guidance_weight'] * self.masks[0]).detach().clone()
+                        latents - latents.grad * text_format_dict['color_guidance_weight'] * text_format_dict['color_obj_atten_all']).detach().clone()
 
+                # apply background injection
+                if background_inject_step:
+                    latents = latents_reference * self.masks[-1] + latents * \
+                        (1-self.masks[-1])
         return latents
 
     def predict_x0(self, x_t, eps_t, t):
@@ -255,7 +244,7 @@ class RegionDiffusion(nn.Module):
         return latents
 
     def prompt_to_img(self, prompts, negative_prompts='', height=512, width=512, num_inference_steps=50,
-                      guidance_scale=7.5, latents=None, text_format_dict={}, use_guidance=False, inject_selfattn=0, bg_aug_end=1000):
+                      guidance_scale=7.5, latents=None, text_format_dict={}, use_guidance=False, inject_selfattn=0, inject_background=0):
 
         if isinstance(prompts, str):
             prompts = [prompts]
@@ -271,7 +260,7 @@ class RegionDiffusion(nn.Module):
         latents = self.produce_latents(text_embeds, height=height, width=width, latents=latents,
                                        num_inference_steps=num_inference_steps, guidance_scale=guidance_scale,
                                        use_guidance=use_guidance, text_format_dict=text_format_dict,
-                                       inject_selfattn=inject_selfattn, bg_aug_end=bg_aug_end)  # [1, 4, 64, 64]
+                                       inject_selfattn=inject_selfattn, inject_background=inject_background)  # [1, 4, 64, 64]
         # Img latents -> imgs
         imgs = self.decode_latents(latents)  # [1, 3, 512, 512]
 
@@ -345,8 +334,6 @@ class RegionDiffusion(nn.Module):
             """
             # out[0] - final output of residual layer
             # out[1] - residual hidden feature
-            # import ipdb
-            # ipdb.set_trace()
             assert out[1].shape[-1] == 16
             activations[name] = out[1].detach()
         attention_dict = collections.defaultdict(list)

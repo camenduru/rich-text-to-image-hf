@@ -29,10 +29,10 @@ If you are encountering an error or not achieving your desired outcome, here are
 
 canvas_html = """<iframe id='rich-text-root' style='width:100%' height='360px' src='file=rich-text-to-json-iframe.html' frameborder='0' scrolling='no'></iframe>"""
 get_js_data = """
-async (text_input, negative_prompt, height, width, seed, steps, num_segments, segment_threshold, inject_interval, guidance_weight, color_guidance_weight, rich_text_input, background_aug) => {
+async (text_input, negative_prompt, num_segments, segment_threshold, inject_interval, inject_background, seed, color_guidance_weight, rich_text_input, height, width, steps, guidance_weights) => {
   const richEl = document.getElementById("rich-text-root");
   const data = richEl? richEl.contentDocument.body._data : {};
-  return [text_input, negative_prompt, height, width, seed, steps, num_segments, segment_threshold, inject_interval, guidance_weight, color_guidance_weight, JSON.stringify(data), background_aug];
+  return [text_input, negative_prompt, num_segments, segment_threshold, inject_interval, inject_background, seed, color_guidance_weight, JSON.stringify(data), height, width, steps, guidance_weights];
 }
 """
 set_js_data = """
@@ -66,27 +66,27 @@ def main():
     def generate(
         text_input: str,
         negative_text: str,
-        height: int,
-        width: int,
-        seed: int,
-        steps: int,
         num_segments: int,
         segment_threshold: float,
         inject_interval: float,
-        guidance_weight: float,
+        inject_background: float,
+        seed: int,
         color_guidance_weight: float,
         rich_text_input: str,
-        background_aug: bool,
+        height: int,
+        width: int,
+        steps: int,
+        guidance_weight: float,
     ):
         run_dir = 'results/'
         os.makedirs(run_dir, exist_ok=True)
         # Load region diffusion model.
-        height = int(height)
-        width = int(width)
+        height = int(height) if height else 512
+        width = int(width) if width else 512
         steps = 41 if not steps else steps
         guidance_weight = 8.5 if not guidance_weight else guidance_weight
-        text_input = rich_text_input if rich_text_input != '' else text_input
-        print('text_input', text_input)
+        text_input = rich_text_input if rich_text_input != '' and rich_text_input != None else text_input
+        print('text_input', text_input, width, height, steps, guidance_weight, num_segments, segment_threshold, inject_interval, inject_background, color_guidance_weight, negative_text)
         if (text_input == '' or rich_text_input == ''):
             raise gr.Error("Please enter some text.")
         # parse json to span attributes
@@ -132,25 +132,25 @@ def main():
                                                                512//8, 512//8, region_target_token_ids[:-1], seed,
                                                                base_tokens, segment_threshold=segment_threshold, num_segments=num_segments,
                                                                return_vis=True)
+        color_obj_atten_all = torch.zeros_like(color_obj_masks[-1])
+        for obj_mask in color_obj_masks[:-1]:
+            color_obj_atten_all += obj_mask
         color_obj_masks = [transforms.functional.resize(color_obj_mask, (height, width),
                                                         interpolation=transforms.InterpolationMode.BICUBIC,
                                                         antialias=True)
                            for color_obj_mask in color_obj_masks]
         text_format_dict['color_obj_atten'] = color_obj_masks
+        text_format_dict['color_obj_atten_all'] = color_obj_atten_all
         model.remove_tokenmap_hooks()
 
         # generate image from rich text
         begin_time = time.time()
         seed_everything(seed)
-        if background_aug:
-            bg_aug_end = 500
-        else:
-            bg_aug_end = 1000
         rich_img = model.prompt_to_img(region_text_prompts, [negative_text],
                                        height=height, width=width, num_inference_steps=steps,
                                        guidance_scale=guidance_weight, use_guidance=use_grad_guidance,
                                        text_format_dict=text_format_dict, inject_selfattn=inject_interval,
-                                       bg_aug_end=bg_aug_end)
+                                       inject_background=inject_background)
         print('time lapses to generate image from rich text: %.4f' %
               (time.time()-begin_time))
         return [plain_img[0], rich_img[0], segments_vis, token_maps]
@@ -191,6 +191,12 @@ def main():
                                             maximum=1,
                                             step=0.01,
                                             value=0.)
+                inject_background = gr.Slider(label='Unformatted token preservation',
+                                            info='(To affect less the tokens without any rich-text attributes, increase this.)',
+                                            minimum=0,
+                                            maximum=1,
+                                            step=0.01,
+                                            value=0.3)
                 color_guidance_weight = gr.Slider(label='Color weight',
                                                   info='(To obtain more precise color, increase this, while too large value may cause artifacts.)',
                                                   minimum=0,
@@ -209,10 +215,6 @@ def main():
                                  value=6,
                                  elem_id="seed"
                                  )
-                background_aug = gr.Checkbox(
-                    label='Precise region alignment',
-                    info='(For strict region alignment, select this option, but beware of potential artifacts when using with style.)',
-                    value=True)
                 with gr.Accordion('Other Parameters', open=False):
                     steps = gr.Slider(label='Number of Steps',
                                       minimum=0,
@@ -266,32 +268,32 @@ def main():
                     5,
                     0.3,
                     0,
+                    0.5,
                     6,
-                    1,
+                    0,
                     None,
-                    True
                 ],
                 [
-                    '{"ops":[{"insert":"A "},{"attributes":{"link":"kitchen island with a stove with gas burners and a built-in oven "},"insert":"kitchen island"},{"insert":" next to a "},{"attributes":{"link":"an open refrigerator stocked with fresh produce, dairy products, and beverages. "},"insert":"refrigerator"},{"insert":", by James McDonald and Joarc Architects, home, interior, octane render, deviantart, cinematic, key art, hyperrealism, sun light, sunrays, canon eos c 300, ƒ 1.8, 35 mm, 8k, medium - format print"}]}',
+                    '{"ops":[{"insert":"A "},{"attributes":{"link":"Thor Kitchen 30 Inch Wide Freestanding Gas Range with Automatic Re-Ignition System"},"insert":"kitchen island"},{"insert":" next to a "},{"attributes":{"link":"an open refrigerator stocked with fresh produce, dairy products, and beverages. "},"insert":"refrigerator"},{"insert":", by James McDonald and Joarc Architects, home, interior, octane render, deviantart, cinematic, key art, hyperrealism, sun light, sunrays, canon eos c 300, ƒ 1.8, 35 mm, 8k, medium - format print"}]}',
                     '',
-                    6,
+                    7,
                     0.5,
                     0,
+                    0.5,
                     6,
-                    1,
+                    0,
                     None,
-                    True
                 ],
                 [
                     '{"ops":[{"insert":"A "},{"attributes":{"link":"Happy Kung fu panda art, elder, asian art, volumetric lighting, dramatic scene, ultra detailed, realism, chinese"},"insert":"panda"},{"insert":" standing on a cliff by a waterfall, wildlife photography, photograph, high quality, wildlife, f 1.8, soft focus, 8k, national geographic, award - winning photograph by nick nichols"}]}',
                     '',
-                    4,
+                    5,
                     0.3,
                     0,
+                    0.1,
                     4,
-                    1,
+                    0,
                     None,
-                    True
                 ],
             ]
 
@@ -303,10 +305,10 @@ def main():
                             num_segments,
                             segment_threshold,
                             inject_interval,
+                            inject_background,
                             seed,
                             color_guidance_weight,
                             rich_text_input,
-                            background_aug,
                         ],
                         outputs=[
                             plaintext_result,
@@ -315,42 +317,42 @@ def main():
                             token_map,
                         ],
                         fn=generate,
-                        # cache_examples=True,
+                        cache_examples=True,
                         examples_per_page=20)
         with gr.Row():
             color_examples = [
                 [
-                    '{"ops":[{"insert":"a beautifule girl with big eye, skin, and long "},{"attributes":{"color":"#00ffff"},"insert":"hair"},{"insert":", t-shirt, bursting with vivid color, intricate, elegant, highly detailed, photorealistic, digital painting,  artstation, illustration, concept art."}]}',
+                    '{"ops":[{"insert":"a beautifule girl with big eye, skin, and long "},{"attributes":{"color":"#04a704"},"insert":"hair"},{"insert":", t-shirt, bursting with vivid color, intricate, elegant, highly detailed, photorealistic, digital painting,  artstation, illustration, concept art."}]}',
                     'lowres, had anatomy, bad hands, cropped, worst quality',
-                    9,
-                    0.25,
+                    11,
+                    0.3,
+                    0.3,
                     0.3,
                     6,
                     0.5,
                     None,
-                    True
                 ],
                 [
-                    '{"ops":[{"insert":"a beautifule girl with big eye, skin, and long "},{"attributes":{"color":"#eeeeee"},"insert":"hair"},{"insert":", t-shirt, bursting with vivid color, intricate, elegant, highly detailed, photorealistic, digital painting,  artstation, illustration, concept art."}]}',
+                    '{"ops":[{"insert":"a beautifule girl with big eye, skin, and long "},{"attributes":{"color":"#999999"},"insert":"hair"},{"insert":", t-shirt, bursting with vivid color, intricate, elegant, highly detailed, photorealistic, digital painting,  artstation, illustration, concept art."}]}',
                     'lowres, had anatomy, bad hands, cropped, worst quality',
-                    9,
-                    0.25,
+                    11,
+                    0.3,
+                    0.3,
                     0.3,
                     6,
-                    0.1,
+                    0.5,
                     None,
-                    True
                 ],
                 [
                     '{"ops":[{"insert":"a Gothic "},{"attributes":{"color":"#FD6C9E"},"insert":"church"},{"insert":" in a the sunset with a beautiful landscape in the background."}]}',
                     '',
-                    5,
-                    0.3,
+                    10,
+                    0.4,
                     0.5,
+                    0.3,
                     6,
                     0.5,
                     None,
-                    False
                 ],
                 [
                     '{"ops":[{"insert":"A mesmerizing sight that captures the beauty of a "},{"attributes":{"color":"#4775fc"},"insert":"rose"},{"insert":" blooming, close up"}]}',
@@ -358,21 +360,21 @@ def main():
                     3,
                     0.3,
                     0,
+                    0,
                     9,
                     1,
                     None,
-                    False
                 ],
                 [
                     '{"ops":[{"insert":"A "},{"attributes":{"color":"#FFD700"},"insert":"marble statue of a wolf\'s head and shoulder"},{"insert":", surrounded by colorful flowers michelangelo, detailed, intricate, full of color, led lighting, trending on artstation, 4 k, hyperrealistic, 3 5 mm, focused, extreme details, unreal engine 5, masterpiece "}]}',
                     '',
                     5,
+                    0.4,
                     0.3,
-                    0,
+                    0.3,
                     5,
                     0.6,
                     None,
-                    False
                 ],
             ]
             gr.Examples(examples=color_examples,
@@ -383,10 +385,10 @@ def main():
                             num_segments,
                             segment_threshold,
                             inject_interval,
+                            inject_background,
                             seed,
                             color_guidance_weight,
                             rich_text_input,
-                            background_aug,
                         ],
                         outputs=[
                             plaintext_result,
@@ -395,7 +397,7 @@ def main():
                             token_map,
                         ],
                         fn=generate,
-                        # cache_examples=True,
+                        cache_examples=True,
                         examples_per_page=20)
 
         with gr.Row():
@@ -403,13 +405,13 @@ def main():
                 [
                     '{"ops":[{"insert":"a "},{"attributes":{"font":"mirza"},"insert":"beautiful garden"},{"insert":" with a "},{"attributes":{"font":"roboto"},"insert":"snow mountain in the background"},{"insert":""}]}',
                     '',
-                    5,
-                    0.3,
+                    10,
+                    0.4,
+                    0,
                     0.2,
                     3,
-                    0.5,
+                    0,
                     None,
-                    False
                 ],
                 [
                     '{"ops":[{"attributes":{"link":"the awe-inspiring sky and ocean in the style of J.M.W. Turner"},"insert":"the awe-inspiring sky and sea"},{"insert":" by "},{"attributes":{"font":"mirza"},"insert":"a coast with flowers and grasses in spring"}]}',
@@ -417,21 +419,21 @@ def main():
                     5,
                     0.3,
                     0,
+                    0,
                     9,
                     0.5,
                     None,
-                    False
                 ],
                 [
                     '{"ops":[{"insert":"a "},{"attributes":{"font":"slabo"},"insert":"night sky filled with stars"},{"insert":" above a "},{"attributes":{"font":"roboto"},"insert":"turbulent sea with giant waves"}]}',
                     '',
                     2,
-                    0.4,
+                    0.35,
+                    0,
                     0,
                     6,
                     0.5,
                     None,
-                    False
                 ],
             ]
             gr.Examples(examples=style_examples,
@@ -442,10 +444,10 @@ def main():
                             num_segments,
                             segment_threshold,
                             inject_interval,
+                            inject_background,
                             seed,
                             color_guidance_weight,
                             rich_text_input,
-                            background_aug,
                         ],
                         outputs=[
                             plaintext_result,
@@ -454,7 +456,7 @@ def main():
                             token_map,
                         ],
                         fn=generate,
-                        # cache_examples=True,
+                        cache_examples=True,
                         examples_per_page=20)
 
         with gr.Row():
@@ -465,10 +467,10 @@ def main():
                     5,
                     0.3,
                     0,
+                    0,
                     13,
                     1,
                     None,
-                    False
                 ],
                 [
                     '{"ops": [{"insert": "A pizza with pineapple, "}, {"attributes": {"size": "20px"}, "insert": "pepperoni"}, {"insert": ", and mushroom on the top, 4k, photorealistic"}]}',
@@ -476,10 +478,10 @@ def main():
                     5,
                     0.3,
                     0,
+                    0,
                     13,
                     1,
                     None,
-                    False
                 ],
                 [
                     '{"ops": [{"insert": "A pizza with pineapple, pepperoni, and "}, {"attributes": {"size": "70px"}, "insert": "mushroom"}, {"insert": " on the top, 4k, photorealistic"}]}',
@@ -487,10 +489,10 @@ def main():
                     5,
                     0.3,
                     0,
+                    0,
                     13,
                     1,
                     None,
-                    False
                 ],
             ]
             gr.Examples(examples=size_examples,
@@ -501,10 +503,10 @@ def main():
                             num_segments,
                             segment_threshold,
                             inject_interval,
+                            inject_background,
                             seed,
                             color_guidance_weight,
                             rich_text_input,
-                            background_aug,
                         ],
                         outputs=[
                             plaintext_result,
@@ -513,24 +515,24 @@ def main():
                             token_map,
                         ],
                         fn=generate,
-                        # cache_examples=True,
+                        cache_examples=True,
                         examples_per_page=20)
         generate_button.click(fn=lambda: gr.update(visible=False), inputs=None, outputs=share_row, queue=False).then(
             fn=generate,
             inputs=[
                 text_input,
                 negative_prompt,
-                height,
-                width,
-                seed,
-                steps,
                 num_segments,
                 segment_threshold,
                 inject_interval,
-                guidance_weight,
+                inject_background,
+                seed,
                 color_guidance_weight,
                 rich_text_input,
-                background_aug
+                height,
+                width,
+                steps,
+                guidance_weight,
             ],
             outputs=[plaintext_result, richtext_result, segments, token_map],
             _js=get_js_data
