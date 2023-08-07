@@ -158,10 +158,11 @@ def main():
     with gr.Blocks(css=css) as demo:
         url_params = gr.JSON({}, visible=False, label="URL Params")
         gr.HTML("""<h1 style="font-weight: 900; margin-bottom: 7px;">Expressive Text-to-Image Generation with Rich Text</h1>
-                   <p> <a href="https://songweige.github.io/">Songwei Ge</a>, <a href="https://taesung.me/">Taesung Park</a>, <a href="https://www.cs.cmu.edu/~junyanz/">Jun-Yan Zhu</a>, <a href="https://jbhuang0604.github.io/">Jia-Bin Huang</a> <p/> 
+                   <p> <a href="https://songweige.github.io/">Songwei Ge</a>, <a href="https://taesung.me/">Taesung Park</a>, <a href="https://www.cs.cmu.edu/~junyanz/">Jun-Yan Zhu</a>, <a href="https://jbhuang0604.github.io/">Jia-Bin Huang</a> <p/>
                    <p> UMD, Adobe, CMU <p/> 
+                   <p> ICCV, 2023 <p/>
                    <p> <a href="https://huggingface.co/spaces/songweig/rich-text-to-image?duplicate=true"><img src="https://bit.ly/3gLdBN6" style="display:inline;"alt="Duplicate Space"></a> | <a href="https://rich-text-to-image.github.io">[Website]</a> | <a href="https://github.com/SongweiGe/rich-text-to-image">[Code]</a> | <a href="https://arxiv.org/abs/2304.06720">[Paper]</a><p/>
-                   <p> For faster inference without waiting in queue, you may duplicate the space and upgrade to GPU in settings.""")
+                   <p> Our method is now upgraded to use Stable Diffusion XL. For faster inference without waiting in queue, you may duplicate the space and upgrade to GPU in settings.""")
         with gr.Row():
             with gr.Column():
                 rich_text_el = gr.HTML(canvas_html, elem_id="canvas_html")
@@ -260,89 +261,78 @@ def main():
         with gr.Row():
             gr.Markdown(help_text)
 
-        # with gr.Row():
-        #     footnote_examples = [
-        #         [
-        #             '{"ops":[{"insert":"A close-up 4k dslr photo of a "},{"attributes":{"link":"A cat wearing sunglasses and a bandana around its neck."},"insert":"cat"},{"insert":" riding a scooter. Palm trees in the background."}]}',
-        #             '',
-        #             9,
-        #             0.3,
-        #             0.3,
-        #             0.5,
-        #             3,
-        #             0,
-        #             None,
-        #         ],
-        #         [
-        #             '{"ops":[{"insert":"A cozy "},{"attributes":{"link":"A charming wooden cabin with Christmas decoration, warm light coming out from the windows."},"insert":"cabin"},{"insert":" nestled in a "},{"attributes":{"link":"Towering evergreen trees covered in a thick layer of pristine snow."},"insert":"snowy forest"},{"insert":", and a "},{"attributes":{"link":"A cute snowman wearing a carrot nose, coal eyes, and a colorful scarf, welcoming visitors with a cheerful vibe."},"insert":"snowman"},{"insert":" stands in the yard."}]}',
-        #             '',
-        #             12,
-        #             0.4,
-        #             0.3,
-        #             0.5,
-        #             3,
-        #             0,
-        #             None,
-        #         ],
-        #         [
-        #             '{"ops":[{"insert":"A "},{"attributes":{"link":"Happy Kung fu panda art, elder, asian art, volumetric lighting, dramatic scene, ultra detailed, realism, chinese"},"insert":"panda"},{"insert":" standing on a cliff by a waterfall, wildlife photography, photograph, high quality, wildlife, f 1.8, soft focus, 8k, national geographic, award - winning photograph by nick nichols"}]}',
-        #             '',
-        #             5,
-        #             0.3,
-        #             0,
-        #             0.1,
-        #             4,
-        #             0,
-        #             None,
-        #         ],
-        #     ]
+        with gr.Row():
+            footnote_examples = [
+                [
+                    '{"ops":[{"insert":"A close-up 4k dslr photo of a "},{"attributes":{"link":"A cat wearing sunglasses and a bandana around its neck."},"insert":"cat"},{"insert":" riding a scooter. Palm trees in the background."}]}',
+                    '',
+                    9,
+                    0.3,
+                    0.3,
+                    0.5,
+                    3,
+                    0,
+                    None,
+                ],
+                [
+                    '{"ops":[{"insert":"A cozy "},{"attributes":{"link":"A charming wooden cabin with Christmas decoration, warm light coming out from the windows."},"insert":"cabin"},{"insert":" nestled in a "},{"attributes":{"link":"Towering evergreen trees covered in a thick layer of pristine snow."},"insert":"snowy forest"},{"insert":", and a "},{"attributes":{"link":"A cute snowman wearing a carrot nose, coal eyes, and a colorful scarf, welcoming visitors with a cheerful vibe."},"insert":"snowman"},{"insert":" stands in the yard."}]}',
+                    '',
+                    12,
+                    0.4,
+                    0.3,
+                    0.5,
+                    3,
+                    0,
+                    None,
+                ],
+                [
+                    '{"ops":[{"insert":"A "},{"attributes":{"link":"Happy Kung fu panda art, elder, asian art, volumetric lighting, dramatic scene, ultra detailed, realism, chinese"},"insert":"panda"},{"insert":" standing on a cliff by a waterfall, wildlife photography, photograph, high quality, wildlife, f 1.8, soft focus, 8k, national geographic, award - winning photograph by nick nichols"}]}',
+                    '',
+                    5,
+                    0.3,
+                    0,
+                    0.1,
+                    4,
+                    0,
+                    None,
+                ],
+            ]
 
-        #     gr.Examples(examples=footnote_examples,
-        #                 label='Footnote examples',
-        #                 inputs=[
-        #                     text_input,
-        #                     negative_prompt,
-        #                     num_segments,
-        #                     segment_threshold,
-        #                     inject_interval,
-        #                     inject_background,
-        #                     seed,
-        #                     color_guidance_weight,
-        #                     rich_text_input,
-        #                 ],
-        #                 outputs=[
-        #                     plaintext_result,
-        #                     richtext_result,
-        #                     segments,
-        #                     token_map,
-        #                 ],
-        #                 fn=generate,
-        #                 cache_examples=True,
-        #                 examples_per_page=20)
+            gr.Examples(examples=footnote_examples,
+                        label='Footnote examples',
+                        inputs=[
+                            text_input,
+                            negative_prompt,
+                            num_segments,
+                            segment_threshold,
+                            inject_interval,
+                            inject_background,
+                            seed,
+                            color_guidance_weight,
+                            rich_text_input,
+                        ],
+                        outputs=[
+                            plaintext_result,
+                            richtext_result,
+                            segments,
+                            token_map,
+                        ],
+                        fn=generate,
+                        cache_examples=True,
+                        examples_per_page=20)
         with gr.Row():
             color_examples = [
-                # [
-                #     '{"ops":[{"insert":"a beautifule girl with big eye, skin, and long "},{"attributes":{"color":"#04a704"},"insert":"hair"},{"insert":", t-shirt, bursting with vivid color, intricate, elegant, highly detailed, photorealistic, digital painting,  artstation, illustration, concept art."}]}',
-                #     'lowres, had anatomy, bad hands, cropped, worst quality',
-                #     11,
-                #     0.5,
-                #     0.3,
-                #     0.3,
-                #     6,
-                #     0.5,
-                #     None,
-                # ],
-                # [
-                #     '{"ops":[{"insert":"a beautifule girl with big eye, skin, and long "},{"attributes":{"color":"#ff5df1"},"insert":"hair"},{"insert":", t-shirt, bursting with vivid color, intricate, elegant, highly detailed, photorealistic, digital painting,  artstation, illustration, concept art."}]}',
-                #     'lowres, had anatomy, bad hands, cropped, worst quality',
-                #     11,
-                #     0.5,
-                #     0.3,
-                #     0.3,
-                #     6,
-                #     0.5,
-                #     None,
-                # ],
+                [
+                    '{"ops":[{"insert":"a beautifule girl with big eye, skin, and long "},{"attributes":{"color":"#04a704"},"insert":"hair"},{"insert":", t-shirt, bursting with vivid color, intricate, elegant, highly detailed, photorealistic, digital painting,  artstation, illustration, concept art."}]}',
+                    'lowres, had anatomy, bad hands, cropped, worst quality',
+                    11,
+                    0.5,
+                    0.3,
+                    0.3,
+                    6,
+                    0.5,
+                    None,
+                ],
                 [
                     '{"ops":[{"insert":"a beautifule girl with big eye, skin, and long "},{"attributes":{"color":"#999999"},"insert":"hair"},{"insert":", t-shirt, bursting with vivid color, intricate, elegant, highly detailed, photorealistic, digital painting,  artstation, illustration, concept art."}]}',
                     'lowres, had anatomy, bad hands, cropped, worst quality',
@@ -389,112 +379,112 @@ def main():
                         cache_examples=True,
                         examples_per_page=20)
 
-        # with gr.Row():
-        #     style_examples = [
-        #         [
-        #             '{"ops":[{"insert":"a beautiful"},{"attributes":{"font":"mirza"},"insert":" garden"},{"insert":" with a "},{"attributes":{"font":"roboto"},"insert":"snow mountain"},{"insert":" in the background"}]}',
-        #             '',
-        #             10,
-        #             0.6,
-        #             0,
-        #             0.4,
-        #             5,
-        #             0,
-        #             None,
-        #         ],
-        #         [
-        #             '{"ops":[{"insert":"a night"},{"attributes":{"font":"slabo"},"insert":" sky"},{"insert":" filled with stars above a turbulent"},{"attributes":{"font":"roboto"},"insert":" sea"},{"insert":" with giant waves"}]}',
-        #             '',
-        #             2,
-        #             0.6,
-        #             0,
-        #             0,
-        #             6,
-        #             0.5,
-        #             None,
-        #         ],
-        #     ]
-        #     gr.Examples(examples=style_examples,
-        #                 label='Font style examples',
-        #                 inputs=[
-        #                     text_input,
-        #                     negative_prompt,
-        #                     num_segments,
-        #                     segment_threshold,
-        #                     inject_interval,
-        #                     inject_background,
-        #                     seed,
-        #                     color_guidance_weight,
-        #                     rich_text_input,
-        #                 ],
-        #                 outputs=[
-        #                     plaintext_result,
-        #                     richtext_result,
-        #                     segments,
-        #                     token_map,
-        #                 ],
-        #                 fn=generate,
-        #                 cache_examples=True,
-        #                 examples_per_page=20)
+        with gr.Row():
+            style_examples = [
+                [
+                    '{"ops":[{"insert":"a beautiful"},{"attributes":{"font":"mirza"},"insert":" garden"},{"insert":" with a "},{"attributes":{"font":"roboto"},"insert":"snow mountain"},{"insert":" in the background"}]}',
+                    '',
+                    10,
+                    0.6,
+                    0,
+                    0.4,
+                    5,
+                    0,
+                    None,
+                ],
+                [
+                    '{"ops":[{"insert":"a night"},{"attributes":{"font":"slabo"},"insert":" sky"},{"insert":" filled with stars above a turbulent"},{"attributes":{"font":"roboto"},"insert":" sea"},{"insert":" with giant waves"}]}',
+                    '',
+                    2,
+                    0.6,
+                    0,
+                    0,
+                    6,
+                    0.5,
+                    None,
+                ],
+            ]
+            gr.Examples(examples=style_examples,
+                        label='Font style examples',
+                        inputs=[
+                            text_input,
+                            negative_prompt,
+                            num_segments,
+                            segment_threshold,
+                            inject_interval,
+                            inject_background,
+                            seed,
+                            color_guidance_weight,
+                            rich_text_input,
+                        ],
+                        outputs=[
+                            plaintext_result,
+                            richtext_result,
+                            segments,
+                            token_map,
+                        ],
+                        fn=generate,
+                        cache_examples=True,
+                        examples_per_page=20)
 
-        # with gr.Row():
-        #     size_examples = [
-        #         [
-        #             '{"ops": [{"insert": "A pizza with "}, {"attributes": {"size": "60px"}, "insert": "pineapple"}, {"insert": " pepperoni, and mushroom on the top"}]}',
-        #             '',
-        #             5,
-        #             0.3,
-        #             0,
-        #             0,
-        #             3,
-        #             1,
-        #             None,
-        #         ],
-        #         [
-        #             '{"ops": [{"insert": "A pizza with pineapple, "}, {"attributes": {"size": "60px"}, "insert": "pepperoni"}, {"insert": ", and mushroom on the top"}]}',
-        #             '',
-        #             5,
-        #             0.3,
-        #             0,
-        #             0,
-        #             3,
-        #             1,
-        #             None,
-        #         ],
-        #         [
-        #             '{"ops": [{"insert": "A pizza with pineapple, pepperoni, and "}, {"attributes": {"size": "60px"}, "insert": "mushroom"}, {"insert": " on the top"}]}',
-        #             '',
-        #             5,
-        #             0.3,
-        #             0,
-        #             0,
-        #             3,
-        #             1,
-        #             None,
-        #         ],
-        #     ]
-        #     gr.Examples(examples=size_examples,
-        #                 label='Font size examples',
-        #                 inputs=[
-        #                     text_input,
-        #                     negative_prompt,
-        #                     num_segments,
-        #                     segment_threshold,
-        #                     inject_interval,
-        #                     inject_background,
-        #                     seed,
-        #                     color_guidance_weight,
-        #                     rich_text_input,
-        #                 ],
-        #                 outputs=[
-        #                     plaintext_result,
-        #                     richtext_result,
-        #                     segments,
-        #                     token_map,
-        #                 ],
-        #                 fn=generate,
-        #                 cache_examples=True,
-        #                 examples_per_page=20)
+        with gr.Row():
+            size_examples = [
+                [
+                    '{"ops": [{"insert": "A pizza with "}, {"attributes": {"size": "60px"}, "insert": "pineapple"}, {"insert": " pepperoni, and mushroom on the top"}]}',
+                    '',
+                    5,
+                    0.3,
+                    0,
+                    0,
+                    3,
+                    1,
+                    None,
+                ],
+                [
+                    '{"ops": [{"insert": "A pizza with pineapple, "}, {"attributes": {"size": "60px"}, "insert": "pepperoni"}, {"insert": ", and mushroom on the top"}]}',
+                    '',
+                    5,
+                    0.3,
+                    0,
+                    0,
+                    3,
+                    1,
+                    None,
+                ],
+                [
+                    '{"ops": [{"insert": "A pizza with pineapple, pepperoni, and "}, {"attributes": {"size": "60px"}, "insert": "mushroom"}, {"insert": " on the top"}]}',
+                    '',
+                    5,
+                    0.3,
+                    0,
+                    0,
+                    3,
+                    1,
+                    None,
+                ],
+            ]
+            gr.Examples(examples=size_examples,
+                        label='Font size examples',
+                        inputs=[
+                            text_input,
+                            negative_prompt,
+                            num_segments,
+                            segment_threshold,
+                            inject_interval,
+                            inject_background,
+                            seed,
+                            color_guidance_weight,
+                            rich_text_input,
+                        ],
+                        outputs=[
+                            plaintext_result,
+                            richtext_result,
+                            segments,
+                            token_map,
+                        ],
+                        fn=generate,
+                        cache_examples=True,
+                        examples_per_page=20)
         generate_button.click(fn=lambda: gr.update(visible=False), inputs=None, outputs=share_row, queue=False).then(
             fn=generate,
             inputs=[
