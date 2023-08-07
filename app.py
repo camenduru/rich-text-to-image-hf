@@ -243,7 +243,7 @@ def main():
             with gr.Column():
                 richtext_result = gr.Image(
                     label='Rich-text', elem_id="rich-text-image")
-                richtext_result.style(height=1024)
+                richtext_result.style(height=784)
                 with gr.Row():
                     plaintext_result = gr.Image(
                         label='Plain-text', elem_id="plain-text-image")
@@ -280,7 +280,7 @@ def main():
                     0.4,
                     0.3,
                     0.5,
-                    4,
+                    3,
                     0,
                     None,
                 ],
