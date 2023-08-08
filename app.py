@@ -334,17 +334,6 @@ def main():
                     None,
                 ],
                 [
-                    '{"ops":[{"insert":"a beautifule girl with big eye, skin, and long "},{"attributes":{"color":"#999999"},"insert":"hair"},{"insert":", t-shirt, bursting with vivid color, intricate, elegant, highly detailed, photorealistic, digital painting,  artstation, illustration, concept art."}]}',
-                    'lowres, had anatomy, bad hands, cropped, worst quality',
-                    11,
-                    0.5,
-                    0.3,
-                    0.3,
-                    6,
-                    0.5,
-                    None,
-                ],
-                [
                     '{"ops":[{"insert":"a Gothic "},{"attributes":{"color":"#FD6C9E"},"insert":"church"},{"insert":" in a the sunset with a beautiful landscape in the background."}]}',
                     '',
                     10,
