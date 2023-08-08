@@ -665,6 +665,7 @@ def get_token_maps(selfattn_maps, crossattn_maps, n_maps, save_dir, width, heigh
         cross_attn_maps_1024).mean(0).cpu().numpy()
     normalized_span_maps = []
     for token_ids in obj_tokens:
+        token_ids = [token_id for token_id in token_ids if token_id < 77]
         span_token_maps = cross_attn_maps_1024[:, :, token_ids.numpy()]
         normalized_span_map = np.zeros_like(span_token_maps)
         for i in range(span_token_maps.shape[-1]):

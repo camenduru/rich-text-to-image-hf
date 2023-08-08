@@ -115,7 +115,7 @@ def main():
             model.remove_tokenmap_hooks()
             model.register_tokenmap_hooks()
         else:
-            model.reset_attention_maps()
+            model.remove_tokenmap_hooks()
             model.remove_tokenmap_hooks()
         plain_img = model.sample([base_text_prompt], negative_prompt=[negative_text],
                                     height=height, width=width, num_inference_steps=steps,
@@ -162,7 +162,7 @@ def main():
                    <p> UMD, Adobe, CMU <p/> 
                    <p> ICCV, 2023 <p/>
                    <p> <a href="https://huggingface.co/spaces/songweig/rich-text-to-image?duplicate=true"><img src="https://bit.ly/3gLdBN6" style="display:inline;"alt="Duplicate Space"></a> | <a href="https://rich-text-to-image.github.io">[Website]</a> | <a href="https://github.com/SongweiGe/rich-text-to-image">[Code]</a> | <a href="https://arxiv.org/abs/2304.06720">[Paper]</a><p/>
-                   <p> Our method is now upgraded to use Stable Diffusion XL. For faster inference without waiting in queue, you may duplicate the space and upgrade to GPU in settings.""")
+                   <p> Our method is now using Stable Diffusion XL. For faster inference without waiting in queue, you may duplicate the space and upgrade to GPU in settings.""")
         with gr.Row():
             with gr.Column():
                 rich_text_el = gr.HTML(canvas_html, elem_id="canvas_html")
@@ -258,8 +258,8 @@ def main():
                         share_button = gr.Button(
                             "Share to community", elem_id="share-btn")
                         share_button.click(None, [], [], _js=share_js)
-        with gr.Row():
-            gr.Markdown(help_text)
+        # with gr.Row():
+        #     gr.Markdown(help_text)
 
         with gr.Row():
             footnote_examples = [
